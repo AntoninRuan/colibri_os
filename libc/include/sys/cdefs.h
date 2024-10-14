@@ -1,0 +1,6 @@
+#ifndef __SYS_CDEFS_H
+#define __SYS_CDEFS_H
+
+#define __wos_libc 1
+
+#endif // __SYS_CDEFS_H
