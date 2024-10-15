@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -35,8 +36,10 @@ int printf(const char* restrict format, ...) {
         }
 
         const char* format_begun_at = format++;
-
-        if (*format == 'c') {
+        size_t len;
+        bool upper_case;
+        switch (*format) {
+        case 'c':
             format++;
             char c = (char) va_arg(parameters, int);
             if (!maxrem) {
@@ -45,19 +48,39 @@ int printf(const char* restrict format, ...) {
             }
             if (!print(&c, sizeof(c))) return -1;
             written ++;
-        } else if (*format == 's') {
+            break;
+
+        case 's':
             format ++;
             const char* str = va_arg(parameters, const char*);
-            size_t len = strlen(str);
+            len = strlen(str);
             if (maxrem < len) {
                 // TODO: Set errno to EOVERFLOW
                 return -1;
             }
             if (!print(str, len)) return -1;
             written += len;
-        } else {
+            break;
+
+        case 'd':
+        case 'i':
+        case 'o':
+        case 'x':
+        case 'X':
+            int base = 16;
+            if (*format == 'd' || *format == 'i') base = 10;
+            else if (*format == 'o') base = 8;
+            upper_case = *format == 'X';
+            format++;
+            unsigned int i = (unsigned int) va_arg(parameters, int);
+            char buf[13] = {0}; // 12 is the maximum of digits in octal +1 for NULL terminated
+            itoa(buf, base, i, upper_case);
+            if (!print(buf, strlen(buf))) return -1;
+            break;
+
+        default:
             format = format_begun_at;
-            size_t len = strlen(format);
+            len = strlen(format);
             if (maxrem < len) {
                 // TODO: Set errno to EOVERFLOW
                 return -1;
@@ -65,6 +88,7 @@ int printf(const char* restrict format, ...) {
             if (!print(format, len)) return -1;
             written += len;
             format += len;
+            break;
         }
     }
 
