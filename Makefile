@@ -19,16 +19,12 @@ CC := $(TOOLPREFIX)-gcc --sysroot=$(SYSROOT) -isystem=$(INCLUDEDIR)
 qemu: wos.iso
 	qemu-system-$(HOSTARCH) -cdrom wos.iso
 
-# Iso construction
-all: wos.iso
+all: $(BOOTDIR)/wos.kernel
 
 wos.iso: $(BOOTDIR)/grub/grub.cfg $(BOOTDIR)/wos.kernel
 	grub-mkrescue -o wos.iso $(SYSROOT)
 
-$(BOOTDIR)/wos.kernel: kernel/wos.kernel
-	cp $< $@
-
-$(BOOTDIR)/grub/grub.cfg:
+$(BOOTDIR)/grub/grub.cfg: Makefile
 	mkdir -p $(BOOTDIR)/grub
 	echo -e 'menuentry "wOS" {\n\tmultiboot /boot/wos.kernel\n}\n' > $(SYSROOT)/boot/grub/grub.cfg
 
@@ -57,7 +53,7 @@ $(SYSROOT)$(INCLUDEDIR)/%.h:: kernel/include/%.h
 	@mkdir -p $(@D)
 	cp --preserve=timestamps $< $@
 
-libc/libk.a: $(LIBK_OBJS)
+$(LIBDIR)/libk.a: $(LIBK_OBJS)
 	$(AR) rcs $@ $(LIBK_OBJS)
 
 %.libk.o: %.c Makefile libc/make.config
@@ -68,7 +64,7 @@ include kernel/make.config
 
 -include $(KER_OBJS:.o=.d)
 
-kernel/wos.kernel: $(KER_OBJS) $(KER_ARCHDIR)/linker.ld
+$(BOOTDIR)/wos.kernel: $(KER_OBJS) $(KER_ARCHDIR)/linker.ld $(LIBDIR)/libk.a
 	$(CC) -MD -T $(KER_ARCHDIR)/linker.ld -o $@ $(KER_CFLAGS) $(KER_LINK_LIST)
 	grub-file --is-x86-multiboot kernel/wos.kernel
 
