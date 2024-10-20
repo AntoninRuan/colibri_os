@@ -26,10 +26,7 @@ wos.iso: $(BOOTDIR)/grub/grub.cfg $(BOOTDIR)/wos.kernel
 
 $(BOOTDIR)/grub/grub.cfg: Makefile
 	mkdir -p $(BOOTDIR)/grub
-	echo -e 'menuentry "wOS" {\n\tmultiboot /boot/wos.kernel\n}\n' > $(SYSROOT)/boot/grub/grub.cfg
-
-$(LIBDIR)/libk.a: libc/libk.a
-	cp --preserve=timestamps $< $@
+	echo -e 'menuentry "wOS" {\n\tmultiboot2 /boot/wos.kernel\n}\n' > $(SYSROOT)/boot/grub/grub.cfg
 
 SOURCE_FILES != find libc/ kernel/ -name "*.[c|S|h]"
 
@@ -66,7 +63,7 @@ include kernel/make.config
 
 $(BOOTDIR)/wos.kernel: $(KER_OBJS) $(KER_ARCHDIR)/linker.ld $(LIBDIR)/libk.a
 	$(CC) -MD -T $(KER_ARCHDIR)/linker.ld -o $@ $(KER_CFLAGS) $(KER_LINK_LIST)
-	grub-file --is-x86-multiboot kernel/wos.kernel
+	grub-file --is-x86-multiboot2 $(BOOTDIR)/wos.kernel
 
 $(KER_ARCHDIR)/crtbegin.o $(KER_ARCHDIR)/crtend.o:
 	OBJ=`$(CC) $(KER_CFLAGS) $(KER_LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
