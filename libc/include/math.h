@@ -8,6 +8,7 @@
 extern "C" {
 #endif // __cplusplus
 
+int ceildiv(int x, int y);
 void itoa(char *buf, unsigned int base, int d, bool caps);
 
 #ifdef __cplusplus

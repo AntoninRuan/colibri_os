@@ -1,6 +1,7 @@
 #ifndef STDIO_H
 #define STDIO_H
 
+#include <stdint.h>
 #include <sys/cdefs.h>
 
 #define EOF (-1)
@@ -10,7 +11,7 @@ extern "C" {
 #endif
 
 int printf(const char* __restrict, ...);
-int putchar(int);
+int putchar(uint8_t);
 
 #ifdef __cplusplus
 }

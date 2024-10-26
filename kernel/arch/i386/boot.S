@@ -9,14 +9,14 @@ multiboot_header:
     .long MULTIBOOT_ARCH_I386   // Arch: i386
     .long multiboot_header_end - multiboot_header // Header length
     .long -(MULTIBOOT_MAGIC + MULTIBOOT_ARCH_I386 + (multiboot_header_end - multiboot_header)) // Checksum
-// framebuffer_tag:
-//     .long MULTIBOOT_HEADER_TAG_FRAMEBUFFER
-//     .short 0
-//     .long framebuffer_tag_end - framebuffer_tag
-//     .long 1024                  // Width
-//     .long 768                   // Height
-//     .long 32                    // bits per pixel
-// framebuffer_tag_end:
+framebuffer_tag:
+    .short MULTIBOOT_HEADER_TAG_FRAMEBUFFER
+    .short MULTIBOOT_HEADER_FLAG_OPTIONAL
+    .long framebuffer_tag_end - framebuffer_tag
+    .long 0                  // Width
+    .long 0                   // Height
+    .long 0                    // bits per pixel
+framebuffer_tag_end:
     .long MULTIBOOT_HEADER_TAG_END
     .short 0
     .long 8

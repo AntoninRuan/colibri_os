@@ -4,3 +4,6 @@ sysroot/
 *.kernel
 **/*.o
 **/*.d
+**/*.a
+**/TAGS
+*.gdbinit

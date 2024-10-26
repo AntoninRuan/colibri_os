@@ -1,15 +1,15 @@
+#include <stdint.h>
 #include <stdio.h>
 
 #ifdef __is_libk
 #include <kernel/tty.h>
 #endif
 
-int putchar(int ic) {
+int putchar(uint8_t c) {
     #ifdef __is_libk
-    char c = (char) ic;
-    terminal_write(&c, sizeof(c));
+    terminal_write(c);
     #else
     // TODO: Implement stdio and write syscall
     #endif
-    return ic;
+    return c;
 }
