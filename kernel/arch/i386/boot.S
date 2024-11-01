@@ -36,11 +36,15 @@ stack_top:
 _start:
     movl $stack_top, %esp
 
+    // Reset EFLAGS
     pushl $0
     popf
 
+    // Save multiboot magic value and address of multiboot2 info struct
     pushl %ebx
     pushl %eax
+
+    call load_gdt
 
     // Call global constructors
     // https://wiki.osdev.org/Calling_Global_Constructors
