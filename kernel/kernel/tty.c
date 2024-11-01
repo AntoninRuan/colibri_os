@@ -36,35 +36,66 @@ int terminal_clear() {
     return 0;
 }
 
+// TODO support other bpp than 32
 void terminal_putchar(uint8_t c, uint16_t color) {
     uint64_t row_offset = (row * (font->height + 1) * display.pitch);
     uint64_t column_offset = (column * (font->width + 1) * (display.bpp / 8));
+
     uint8_t *font_char = font_start + (c * font->bytesperglyph);
+
     uint8_t bitmap_offset;
     for (uint32_t y = 0; y < font->height; y ++) {
+        bitmap_offset = ceildiv(font->width, 8) * y;
+
         for (uint32_t x = 0; x < font->width; x += 8) {
-            bitmap_offset = ceildiv(font->width, 8) * y + (x / 8);
             for (uint8_t i = 0; i < 8; i ++) {
                 if ((x + i) >= font->width) break;
+
                 if (font_char[bitmap_offset] & (0x80 >> i)) {
                     uint32_t *index = (uint32_t *) (display.addr + row_offset + column_offset + (x + i) * (display.bpp / 8));
                     *index = color;
                 }
             }
+            bitmap_offset ++;
         }
         row_offset += display.pitch;
     }
-    if (column ++ == TERMINAL_WIDTH) {
-        if (row ++ == TERMINAL_HEIGHT) {
-            row = 0;
-        }
-        column = 0;
+
+    if (++ column == TERMINAL_WIDTH) {
+        terminal_return();
     }
+}
+
+void terminal_return() {
+    if (++ row == TERMINAL_HEIGHT)
+        row = 0;
+    column = 0;
+}
+
+void terminal_backspace() {
+    if (column != 0)
+        column --;
 }
 
 void terminal_write(uint8_t data) {
     if (0x20 <= data && data < 0x7F) {
-        terminal_putchar(data, 0x0077ff);
+        terminal_putchar(data, 0x0000ff);
+        return;
+    }
+
+    switch(data) {
+        case '\b':
+            terminal_backspace();
+            break;
+        case '\t':
+            // TODO add support for \t
+            break;
+        case '\n':
+            terminal_return();
+            break;
+
+        default:
+            break;
     }
 }
 

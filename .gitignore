@@ -1,6 +1,6 @@
-wos.iso
 sysroot/
 
+*.iso
 *.kernel
 **/*.o
 **/*.d

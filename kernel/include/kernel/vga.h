@@ -37,7 +37,7 @@ struct framebuffer {
             uint8_t blue_field_position;
             uint8_t blue_mask_size;
         };
-    }
+    };
 };
 
 #endif // VGA_H
