@@ -1,3 +1,4 @@
+OS_NAME := colibri
 SYSROOT := sysroot
 BOOTDIR := $(SYSROOT)/boot
 LIBDIR := $(SYSROOT)/usr/lib
@@ -11,30 +12,30 @@ TOOLPREFIX := ../cross/bin/$(HOST)
 
 AR := $(TOOLPREFIX)-ar
 AS := $(TOOLPREFIX)-as
-CC := $(TOOLPREFIX)-gcc --sysroot=$(SYSROOT) $(INCLUDES) -ggdb
+CC := $(TOOLPREFIX)-gcc --sysroot=$(SYSROOT) $(INCLUDES) -ggdb -std=c23
 
 .PHONY: all qemu qemu-gdb todo
 .SUFFIXES: .libk.o .c .S .o
 
-QEMU_FLAGS := -m 128 -no-reboot -smp 1 -cdrom wos.iso
+ all: $(BOOTDIR)/$(OS_NAME).kernel
 
-qemu: wos.iso
+QEMU_FLAGS := -m 128 -no-reboot -smp 1 -cdrom $(OS_NAME).iso
+
+qemu: $(OS_NAME).iso
 	qemu-system-$(HOSTARCH) $(QEMU_FLAGS)
 
 .gdbinit: Makefile
-	echo -e 'target remote localhost:1234\nfile $(BOOTDIR)/wos.kernel\n' > .gdbinit
+	echo -e 'target remote localhost:1234\nfile $(BOOTDIR)/$(OS_NAME).kernel\n' > .gdbinit
 
-qemu-gdb: wos.iso .gdbinit
+qemu-gdb: $(OS_NAME).iso .gdbinit
 	qemu-system-$(HOSTARCH) $(QEMU_FLAGS) -s -S
 
-all: $(BOOTDIR)/wos.kernel
-
-wos.iso: $(BOOTDIR)/grub/grub.cfg $(BOOTDIR)/wos.kernel
-	grub-mkrescue -o wos.iso $(SYSROOT)
+$(OS_NAME).iso: $(BOOTDIR)/grub/grub.cfg $(BOOTDIR)/$(OS_NAME).kernel
+	grub-mkrescue -o $(OS_NAME).iso $(SYSROOT)
 
 $(BOOTDIR)/grub/grub.cfg: Makefile
 	mkdir -p $(BOOTDIR)/grub
-	echo -e 'menuentry "wOS" {\n\tmultiboot2 /boot/wos.kernel\n}\n' > $(SYSROOT)/boot/grub/grub.cfg
+	echo -e 'menuentry "$(OS_NAME)" {\n\tmultiboot2 /boot/$(OS_NAME).kernel\n}\n' > $(SYSROOT)/boot/grub/grub.cfg
 
 SOURCE_FILES != find libc/ kernel/ -name "*.[c|S|h]"
 
@@ -62,7 +63,7 @@ $(LIBDIR)/libk.a: $(LIBK_OBJS)
 	$(AR) rcs $@ $(LIBK_OBJS)
 
 %.libk.o: %.c Makefile libc/make.config
-	$(CC) -MD -c $< -o $@ -std=gnu11 $(LIBK_CFLAGS)
+	$(CC) -MD -c $< -o $@ $(LIBK_CFLAGS)
 
 install_libc_headers:
 	@mkdir -p $(SYSROOT)$(INCLUDEDIR)
@@ -73,9 +74,9 @@ include kernel/make.config
 
 -include $(KER_OBJS:.o=.d)
 
-$(BOOTDIR)/wos.kernel: $(KER_OBJS) $(KER_ARCHDIR)/linker.ld $(LIBDIR)/libk.a
+$(BOOTDIR)/$(OS_NAME).kernel: $(KER_OBJS) $(KER_ARCHDIR)/linker.ld $(LIBDIR)/libk.a
 	$(CC) -MD -T $(KER_ARCHDIR)/linker.ld -o $@ $(KER_CFLAGS) $(KER_LINK_LIST)
-	grub-file --is-x86-multiboot2 $(BOOTDIR)/wos.kernel
+	grub-file --is-x86-multiboot2 $(BOOTDIR)/$(OS_NAME).kernel
 
 $(KER_ARCHDIR)/crtbegin.o $(KER_ARCHDIR)/crtend.o:
 	OBJ=`$(CC) $(KER_CFLAGS) $(KER_LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
@@ -84,10 +85,10 @@ kernel/kernel/font.o:
 	cp ../fonts/solarize-12x29-psf/font.o kernel/kernel/font.o
 
 %.o: %.c Makefile kernel/make.config
-	$(CC) -MD -c $< -o $@ -std=gnu11 $(KER_CFLAGS)
+	$(CC) -MD -c $< -o $@ $(KER_CFLAGS)
 
 %.o: %.S Makefile kernel/make.config
-	$(CC) -MD -c $< -o $@ -std=gnu11 $(KER_CFLAGS)
+	$(CC) -MD -c $< -o $@ $(KER_CFLAGS)
 
 install_kernel_headers:
 	@mkdir -p $(SYSROOT)$(INCLUDEDIR)
