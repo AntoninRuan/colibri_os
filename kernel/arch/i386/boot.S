@@ -44,7 +44,8 @@ _start:
     pushl %ebx
     pushl %eax
 
-    call load_gdt
+    cli
+    call pre_main
 
     // Call global constructors
     // https://wiki.osdev.org/Calling_Global_Constructors
