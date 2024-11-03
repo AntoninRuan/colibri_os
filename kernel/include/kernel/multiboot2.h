@@ -215,6 +215,8 @@ struct multiboot_load_base_addr {
     uint32_t addr;
 };
 
+void load_multiboot_info(unsigned long magic, unsigned long addr);
+
 #endif // __is_asm
 
 #endif // KERNEL_MULTIBOOT2_H

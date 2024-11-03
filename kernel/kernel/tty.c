@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <kernel/vga.h>
 #include <kernel/tty.h>
 #include <kernel/pc_font.h>
 
@@ -78,6 +79,10 @@ void terminal_backspace() {
 }
 
 void terminal_write(uint8_t data) {
+    if (display.addr == 0) {
+        return;
+    }
+
     if (0x20 <= data && data < 0x7F) {
         terminal_putchar(data, 0x0000ff);
         return;

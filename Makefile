@@ -14,10 +14,14 @@ AR := $(TOOLPREFIX)-ar
 AS := $(TOOLPREFIX)-as
 CC := $(TOOLPREFIX)-gcc --sysroot=$(SYSROOT) $(INCLUDES) -ggdb -std=c23
 
-.PHONY: all qemu qemu-gdb todo
+.PHONY: all qemu qemu-gdb todo clean
 .SUFFIXES: .libk.o .c .S .o
 
  all: $(BOOTDIR)/$(OS_NAME).kernel
+
+clean:
+	find -name "*.o" -exec rm {} +
+	rm -R $(SYSROOT)/ 
 
 QEMU_FLAGS := -m 128 -no-reboot -smp 1 -cdrom $(OS_NAME).iso
 
@@ -60,6 +64,7 @@ $(SYSROOT)$(INCLUDEDIR)/%.h:: kernel/include/%.h
 	cp --preserve=timestamps $< $@
 
 $(LIBDIR)/libk.a: $(LIBK_OBJS)
+	mkdir -p $(LIBDIR)
 	$(AR) rcs $@ $(LIBK_OBJS)
 
 %.libk.o: %.c Makefile libc/make.config
@@ -75,6 +80,7 @@ include kernel/make.config
 -include $(KER_OBJS:.o=.d)
 
 $(BOOTDIR)/$(OS_NAME).kernel: $(KER_OBJS) $(KER_ARCHDIR)/linker.ld $(LIBDIR)/libk.a
+	mkdir -p $(BOOTDIR)
 	$(CC) -MD -T $(KER_ARCHDIR)/linker.ld -o $@ $(KER_CFLAGS) $(KER_LINK_LIST)
 	grub-file --is-x86-multiboot2 $(BOOTDIR)/$(OS_NAME).kernel
 
