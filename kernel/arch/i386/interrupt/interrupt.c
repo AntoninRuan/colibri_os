@@ -31,6 +31,6 @@ void load_idt() {
     idtr.size = 0x7FF;          // Size fo idt in bytes minus one
     idtr.base = (uint32_t) idt;
 
-    __asm__ volatile("lidt %0" :: "m"(idtr));
+    asm volatile("lidt %0" :: "m"(idtr));
     return;
 }

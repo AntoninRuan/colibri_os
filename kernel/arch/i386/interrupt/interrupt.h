@@ -40,6 +40,7 @@ struct interrupt_frame {
     uint32_t error_code;
 };
 
+void set_idt_entry(uint8_t vector, uint32_t  handler_addr, uint16_t selector, uint8_t flags);
 void load_idt();
 
 #endif // INTERRUPT_H

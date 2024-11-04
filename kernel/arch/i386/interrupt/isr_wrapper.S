@@ -68,3 +68,6 @@ vector_handler_\vec_num:
     VECTOR_NO_ERR 30
     VECTOR_NO_ERR 31
     // End of reserved vectors
+
+    // APIC Spurious vector
+    VECTOR_NO_ERR 0xFF

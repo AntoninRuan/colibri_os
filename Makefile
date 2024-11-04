@@ -12,7 +12,7 @@ TOOLPREFIX := ../cross/bin/$(HOST)
 
 AR := $(TOOLPREFIX)-ar
 AS := $(TOOLPREFIX)-as
-CC := $(TOOLPREFIX)-gcc --sysroot=$(SYSROOT) $(INCLUDES) -ggdb -std=c23
+CC := $(TOOLPREFIX)-gcc --sysroot=$(SYSROOT) $(INCLUDES) -ggdb -std=gnu23
 
 .PHONY: all qemu qemu-gdb todo clean
 .SUFFIXES: .libk.o .c .S .o
@@ -21,9 +21,11 @@ CC := $(TOOLPREFIX)-gcc --sysroot=$(SYSROOT) $(INCLUDES) -ggdb -std=c23
 
 clean:
 	find -name "*.o" -exec rm {} +
-	rm -R $(SYSROOT)/ 
+	rm -R $(SYSROOT)/
 
-QEMU_FLAGS := -m 128 -no-reboot -smp 1 -cdrom $(OS_NAME).iso
+CPUS ?= 1
+
+QEMU_FLAGS := -m 128 -no-reboot -smp $(CPUS) -cdrom $(OS_NAME).iso
 
 qemu: $(OS_NAME).iso
 	qemu-system-$(HOSTARCH) $(QEMU_FLAGS)

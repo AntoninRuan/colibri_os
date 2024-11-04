@@ -58,8 +58,8 @@ void load_gdt() {
     gdtr.limit = GDT_ENTRY_NUM * sizeof(uint64_t) - 1;
     gdtr.addr = (uint64_t)gdt_entries;
 
-    __asm__ volatile("lgdt %0" : : "m"(gdtr));
-    __asm__ volatile("call flush_gdt");
+    asm volatile("lgdt %0" : : "m"(gdtr));
+    asm volatile("call flush_gdt");
 
     return;
 }
