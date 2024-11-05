@@ -7,9 +7,13 @@
 - [ ] Input via PS/2
 - [ ] Implement USB keyboard support
 
-### Terminal display
+### Framebuffer rendering
 
 - [x] Render bitmap font
+- [ ] Support bitmap rendering in other bpp than 32
+
+### Terminal display
+
 - [ ] Make line goes up one row each rather than going back to the top
 
 ### File system
@@ -37,5 +41,6 @@
 ## Misc
 
 - [x] Support multiboot2
+- [x] Replace gcc with clang for easier cross compiling
 - [ ] Basic logging (maybe over serial port)
 - [ ] Add support for x86_64

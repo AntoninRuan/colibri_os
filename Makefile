@@ -5,14 +5,13 @@ LIBDIR := $(SYSROOT)/usr/lib
 INCLUDEDIR := /usr/include
 INCLUDES := -isystem ./libc/include/ -isystem ./kernel/include/
 
-HOST ?= i686-elf
+HOST ?= i686-pc-none-elf
 HOSTARCH != ./target-triplet-to-arch.sh $(HOST)
 
-TOOLPREFIX := ../cross/bin/$(HOST)
+LLVM_TARGET_FLAG := --target=$(HOST) -march=$(HOSTARCH)
 
-AR := $(TOOLPREFIX)-ar
-AS := $(TOOLPREFIX)-as
-CC := $(TOOLPREFIX)-gcc --sysroot=$(SYSROOT) $(INCLUDES) -ggdb -std=gnu23
+AR := llvm-ar
+CC := clang $(LLVM_TARGET_FLAG) $(INCLUDES) -ggdb -std=gnu23
 
 .PHONY: all qemu qemu-gdb todo clean
 .SUFFIXES: .libk.o .c .S .o
@@ -40,7 +39,7 @@ $(OS_NAME).iso: $(BOOTDIR)/grub/grub.cfg $(BOOTDIR)/$(OS_NAME).kernel
 	grub-mkrescue -o $(OS_NAME).iso $(SYSROOT)
 
 $(BOOTDIR)/grub/grub.cfg: Makefile
-	mkdir -p $(BOOTDIR)/grub
+	@mkdir -p $(BOOTDIR)/grub
 	echo -e 'menuentry "$(OS_NAME)" {\n\tmultiboot2 /boot/$(OS_NAME).kernel\n}\n' > $(SYSROOT)/boot/grub/grub.cfg
 
 SOURCE_FILES != find libc/ kernel/ -name "*.[c|S|h]"
@@ -66,7 +65,7 @@ $(SYSROOT)$(INCLUDEDIR)/%.h:: kernel/include/%.h
 	cp --preserve=timestamps $< $@
 
 $(LIBDIR)/libk.a: $(LIBK_OBJS)
-	mkdir -p $(LIBDIR)
+	@mkdir -p $(LIBDIR)
 	$(AR) rcs $@ $(LIBK_OBJS)
 
 %.libk.o: %.c Makefile libc/make.config
@@ -82,12 +81,9 @@ include kernel/make.config
 -include $(KER_OBJS:.o=.d)
 
 $(BOOTDIR)/$(OS_NAME).kernel: $(KER_OBJS) $(KER_ARCHDIR)/linker.ld $(LIBDIR)/libk.a
-	mkdir -p $(BOOTDIR)
-	$(CC) -MD -T $(KER_ARCHDIR)/linker.ld -o $@ $(KER_CFLAGS) $(KER_LINK_LIST)
+	@mkdir -p $(BOOTDIR)
+	$(CC) -MD -T $(KER_ARCHDIR)/linker.ld -o $@ $(KER_CFLAGS) $(KER_LINK_LIST) -L$(LIBDIR) -fuse-ld=lld -static
 	grub-file --is-x86-multiboot2 $(BOOTDIR)/$(OS_NAME).kernel
-
-$(KER_ARCHDIR)/crtbegin.o $(KER_ARCHDIR)/crtend.o:
-	OBJ=`$(CC) $(KER_CFLAGS) $(KER_LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
 kernel/kernel/font.o:
 	cp ../fonts/solarize-12x29-psf/font.o kernel/kernel/font.o

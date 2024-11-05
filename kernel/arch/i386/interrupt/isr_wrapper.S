@@ -34,40 +34,40 @@ vector_handler_\vec_num:
 .endm
 
     // Reserved vectors
-    VECTOR_NO_ERR 0             // Divide by zero error
-    VECTOR_NO_ERR 1             // Debug
-    VECTOR_NO_ERR 2             // Non maskable interrupt
-    VECTOR_NO_ERR 3             // Breakpoint
-    VECTOR_NO_ERR 4             // Overflow
-    VECTOR_NO_ERR 5             // Bound range exceeded
-    VECTOR_NO_ERR 6             // Invalid Opcode
-    VECTOR_NO_ERR 7             // Device not available
-    VECTOR_ERR    8             // Double fault (err always 0)
-    VECTOR_NO_ERR 9             // Unused (was x86 segment overrun)
-    VECTOR_ERR    10            // Invalid TSS
-    VECTOR_ERR    11            // Segment not present
-    VECTOR_ERR    12            // Stack segment fault
-    VECTOR_ERR    13            // General protection
-    VECTOR_ERR    14            // Page fault
-    VECTOR_NO_ERR 15            // Currently unused
-    VECTOR_NO_ERR 16            // x87 FPU error
-    VECTOR_ERR    17            // Alignement check
-    VECTOR_NO_ERR 18            // Machine check
-    VECTOR_NO_ERR 19            // SIMD (SSE/AVX) error
+    vector_no_err 0             // Divide by zero error
+    vector_no_err 1             // Debug
+    vector_no_err 2             // Non maskable interrupt
+    vector_no_err 3             // Breakpoint
+    vector_no_err 4             // Overflow
+    vector_no_err 5             // Bound range exceeded
+    vector_no_err 6             // Invalid Opcode
+    vector_no_err 7             // Device not available
+    vector_err    8             // Double fault (err always 0)
+    vector_no_err 9             // Unused (was x86 segment overrun)
+    vector_err    10            // Invalid TSS
+    vector_err    11            // Segment not present
+    vector_err    12            // Stack segment fault
+    vector_err    13            // General protection
+    vector_err    14            // Page fault
+    vector_no_err 15            // Currently unused
+    vector_no_err 16            // x87 FPU error
+    vector_err    17            // Alignement check
+    vector_no_err 18            // Machine check
+    vector_no_err 19            // SIMD (SSE/AVX) error
     // Currently unused
-    VECTOR_NO_ERR 20
-    VECTOR_NO_ERR 21
-    VECTOR_NO_ERR 22
-    VECTOR_NO_ERR 23
-    VECTOR_NO_ERR 24
-    VECTOR_NO_ERR 25
-    VECTOR_NO_ERR 26
-    VECTOR_NO_ERR 27
-    VECTOR_NO_ERR 28
-    VECTOR_NO_ERR 29
-    VECTOR_NO_ERR 30
-    VECTOR_NO_ERR 31
+    vector_no_err 20
+    vector_no_err 21
+    vector_no_err 22
+    vector_no_err 23
+    vector_no_err 24
+    vector_no_err 25
+    vector_no_err 26
+    vector_no_err 27
+    vector_no_err 28
+    vector_no_err 29
+    vector_no_err 30
+    vector_no_err 31
     // End of reserved vectors
 
     // APIC Spurious vector
-    VECTOR_NO_ERR 0xFF
+    vector_no_err 0xFF
