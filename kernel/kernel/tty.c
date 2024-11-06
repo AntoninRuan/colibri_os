@@ -15,15 +15,19 @@ const struct pc_font* font = (struct pc_font *) &_binary_font_psfu_start;
 uint8_t *font_start;
 size_t TERMINAL_WIDTH, TERMINAL_HEIGHT;
 size_t row, column;
+uint16_t fg, bg;
 
 int terminal_initialize(struct framebuffer *fb) {
     memcpy(&display, fb, sizeof(struct framebuffer));
     font_start = (uint8_t *)(&_binary_font_psfu_start + font->headersize);
 
     TERMINAL_HEIGHT = display.height / (font->height + 1);
-    TERMINAL_WIDTH = display.width / (font->width);
+    TERMINAL_WIDTH = display.width / (font->width + 1);
     row = 0;
     column = 0;
+
+    fg = (uint16_t) 0xFFFFFF;
+    bg = 0;
 
     return terminal_clear();
 }
@@ -38,7 +42,7 @@ int terminal_clear() {
 }
 
 // TODO support other bpp than 32
-void terminal_putchar(uint8_t c, uint16_t color) {
+void terminal_putchar(uint8_t c) {
     uint64_t row_offset = (row * (font->height + 1) * display.pitch);
     uint64_t column_offset = (column * (font->width + 1) * (display.bpp / 8));
 
@@ -52,10 +56,12 @@ void terminal_putchar(uint8_t c, uint16_t color) {
             for (uint8_t i = 0; i < 8; i ++) {
                 if ((x + i) >= font->width) break;
 
-                if (font_char[bitmap_offset] & (0x80 >> i)) {
-                    uint32_t *index = (uint32_t *) (display.addr + row_offset + column_offset + (x + i) * (display.bpp / 8));
-                    *index = color;
-                }
+                uint32_t *index = (uint32_t *) (display.addr + row_offset + column_offset + (x + i) * (display.bpp / 8));
+
+                if (font_char[bitmap_offset] & (0x80 >> i))
+                    *index = fg;
+                else
+                    *index = bg;
             }
             bitmap_offset ++;
         }
@@ -68,14 +74,18 @@ void terminal_putchar(uint8_t c, uint16_t color) {
 }
 
 void terminal_return() {
-    if (++ row == TERMINAL_HEIGHT)
+    if (++ row == TERMINAL_HEIGHT) {
+        terminal_clear();
         row = 0;
+    }
     column = 0;
 }
 
 void terminal_backspace() {
     if (column != 0)
         column --;
+    terminal_putchar(' ');
+    column --;
 }
 
 void terminal_write(uint8_t data) {
@@ -84,7 +94,7 @@ void terminal_write(uint8_t data) {
     }
 
     if (0x20 <= data && data < 0x7F) {
-        terminal_putchar(data, 0x0000ff);
+        terminal_putchar(data);
         return;
     }
 

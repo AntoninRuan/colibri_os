@@ -20,6 +20,7 @@ CC := clang $(LLVM_TARGET_FLAG) $(INCLUDES) -ggdb -std=gnu23
 
 clean:
 	find -name "*.o" -exec rm {} +
+	find -name "*.d" -exec rm {} +
 	rm -R $(SYSROOT)/
 
 CPUS ?= 1
