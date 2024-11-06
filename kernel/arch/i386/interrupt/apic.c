@@ -1,6 +1,9 @@
 #include <cpuid.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+
+#include <kernel/acpi.h>
 
 #include "../gdt/gdt.h"
 #include "../x86.h"
@@ -69,8 +72,8 @@ void send_eoi() {
 // Defined in isr_wrapper.S
 extern uint8_t vector_handler_0xFF;
 
-void enable_lapic() {
-    if(!check_lapic_availibity()) return;
+int enable_lapic() {
+    if(!check_lapic_availibity()) return 1;
 
     disable_pic();
 
@@ -93,4 +96,6 @@ void enable_lapic() {
     set_idt_entry(0xFF, (uint32_t) &vector_handler_0xFF,
                   GDT_ENTRY_KERNEL_CODE,
                   FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE));
+
+    return 0;
 }

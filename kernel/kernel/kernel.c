@@ -1,10 +1,8 @@
 #include <stdint.h>
-#include <stdio.h>
+// #include <stdio.h>
 
-#include <kernel/multiboot2.h>
+void main(void) {
+    // printf("Hello world!");
 
-void main(unsigned long magic, unsigned long addr) {
-    load_multiboot_info(magic, addr);
-
-    printf("Hello world!");
+    while(1);
 }

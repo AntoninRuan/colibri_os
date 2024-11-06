@@ -1,6 +1,7 @@
 #ifndef APIC_H
 #define APIC_H
 
+#include <stdint.h>
 #define PIC_COMMAND_MASTER 0x20
 #define PIC_DATA_MASTER    0x21
 
@@ -44,6 +45,6 @@
 #define LAPIC_REGISTER_DIVIDE_CONFIG        0x3E0 // R/W
 
 void send_eoi();
-void enable_lapic();
+int enable_lapic();
 
 #endif // APIC_H

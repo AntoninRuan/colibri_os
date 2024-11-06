@@ -69,5 +69,7 @@ vector_handler_\vec_num:
     vector_no_err 31
     // End of reserved vectors
 
-    // APIC Spurious vector
-    vector_no_err 0xFF
+    // IRQs
+    vector_no_err 0x21          // Keyboard interrupt
+
+    vector_no_err 0xFF          // APIC Spurious vector
