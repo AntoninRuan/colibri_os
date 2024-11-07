@@ -44,6 +44,9 @@ _start:
     pushl %ebx
     pushl %eax
 
+    lgdt gdtr
+    call flush_gdt
+
     cli
     call pre_main
 

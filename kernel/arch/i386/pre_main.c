@@ -11,8 +11,6 @@ extern uint8_t vector_handler_0x21;
 void pre_main(unsigned long magic, unsigned long addr) {
     load_multiboot_info(magic, addr);
 
-    load_gdt();                 // Load gdt from gdt.c
-
     load_idt();                 // Setup interrupts
     enable_lapic();
     read_madt();
