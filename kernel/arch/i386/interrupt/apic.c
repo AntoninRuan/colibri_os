@@ -3,12 +3,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <kernel/x86.h>
 #include <kernel/acpi.h>
+#include <kernel/arch/i386/gdt.h>
+#include <kernel/arch/i386/interrupt.h>
+#include <kernel/arch/i386/apic.h>
 
-#include "../gdt/gdt.h"
-#include "../x86.h"
-#include "apic.h"
-#include "interrupt.h"
 
 uint32_t lapic_base_address = 0;
 bool support_xapic2 = false;

@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "ioapic.h"
+#include <kernel/arch/i386/ioapic.h>
 
 uint32_t io_apic_base_addr = 0;
 

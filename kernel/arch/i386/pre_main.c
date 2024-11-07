@@ -1,10 +1,11 @@
 #include <kernel/keyboard.h>
 #include <kernel/multiboot2.h>
+#include <kernel/x86.h>
 
-#include "gdt/gdt.h"
-#include "interrupt/interrupt.h"
-#include "interrupt/apic.h"
-#include "interrupt/ioapic.h"
+#include <kernel/arch/i386/apic.h>
+#include <kernel/arch/i386/gdt.h>
+#include <kernel/arch/i386/interrupt.h>
+#include <kernel/arch/i386/ioapic.h>
 
 extern uint8_t vector_handler_0x21;
 

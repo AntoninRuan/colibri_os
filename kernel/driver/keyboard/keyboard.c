@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <kernel/keyboard.h>
 
-#include "../arch/i386/x86.h"
+#include <kernel/x86.h>
 #include "ps2.h"
 
 #define KEYBOARD_PORT 0x60

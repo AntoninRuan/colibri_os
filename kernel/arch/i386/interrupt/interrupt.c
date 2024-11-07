@@ -1,7 +1,20 @@
 #include <stdint.h>
 
-#include "interrupt.h"
-#include "../gdt/gdt.h"
+#include <kernel/arch/i386/interrupt.h>
+#include <kernel/arch/i386/gdt.h>
+
+struct interrupt_descriptor {
+    uint16_t addr_low;
+    uint16_t selector;
+    uint8_t reserved;
+    uint8_t flags;
+    uint16_t addr_high;
+} __attribute__((packed));
+
+struct IDTR {
+    uint16_t size;
+    uint32_t base;
+} __attribute__((packed));
 
 struct interrupt_descriptor idt[256] = {0};
 
@@ -12,7 +25,6 @@ void set_idt_entry(uint8_t vector, uint32_t  handler_addr, uint16_t selector, ui
     entry->addr_high = (handler_addr >> 16) & 0xFFFF;
     entry->flags = flags | 0x80; // Add the mandatory present flag
     entry->selector = selector;
-
 }
 
 // Defined in isr_wrapper.S

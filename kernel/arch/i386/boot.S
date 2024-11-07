@@ -44,15 +44,11 @@ _start:
     pushl %ebx
     pushl %eax
 
+    cli
     lgdt gdtr
     call flush_gdt
 
-    cli
     call pre_main
-
-    // Call global constructors
-    // https://wiki.osdev.org/Calling_Global_Constructors
-    call _init
 
     // Transfer control to kernel.c
     call main

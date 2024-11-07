@@ -3,6 +3,12 @@
 
 #include <stdint.h>
 
+#define IRQ_PIT      0x0
+#define IRQ_KEYBOARD 0x1
+
+#define IRQ_VECTOR_PIT      0X20
+#define IRQ_VECTOR_KEYBOARD 0X21
+
 // Struct use to read the value of general purposer register after a pushal
 struct registers_t {
     uint32_t edi;
@@ -13,6 +19,13 @@ struct registers_t {
     uint32_t edx;
     uint32_t ecpx;
     uint32_t eax;
+};
+
+struct interrupt_frame {
+    struct registers_t registers;
+
+    uint32_t vector_number;
+    uint32_t error_code;
 };
 
 static inline void outb(uint16_t port, uint8_t value) {

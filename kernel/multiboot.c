@@ -4,7 +4,7 @@
 #include <kernel/multiboot2.h>
 #include <kernel/tty.h>
 
-void load_multiboot_info(unsigned long magic, unsigned long addr) {
+void load_multiboot_info(uint32_t magic, uint32_t addr) {
     if (magic != 0x36d76289) {
         abort();
     }

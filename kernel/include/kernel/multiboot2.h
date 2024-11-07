@@ -215,7 +215,7 @@ struct multiboot_load_base_addr {
     uint32_t addr;
 };
 
-void load_multiboot_info(unsigned long magic, unsigned long addr);
+void load_multiboot_info(uint32_t magic, uint32_t addr);
 
 #endif // __is_asm
 
