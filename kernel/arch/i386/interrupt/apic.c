@@ -5,7 +5,7 @@
 
 #include <kernel/x86.h>
 #include <kernel/acpi.h>
-#include <kernel/arch/i386/gdt.h>
+
 #include <kernel/arch/i386/interrupt.h>
 #include <kernel/arch/i386/apic.h>
 

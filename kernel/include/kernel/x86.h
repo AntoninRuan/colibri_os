@@ -9,6 +9,11 @@
 #define IRQ_VECTOR_PIT      0X20
 #define IRQ_VECTOR_KEYBOARD 0X21
 
+#define GDT_ENTRY_KERNEL_CODE 0x8
+#define GDT_ENTRY_KERNEL_DATA 0x10
+#define GDT_ENTRY_USER_CODE   0x18
+#define GDT_ENTRY_USER_DATA   0x20
+
 // Struct use to read the value of general purposer register after a pushal
 struct registers_t {
     uint32_t edi;

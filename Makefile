@@ -73,7 +73,7 @@ KER_OBJS := $(addprefix $(BUILD), $(KER_OBJS))
 
 $(BOOTDIR)/$(OS_NAME).kernel: $(KER_OBJS) $(KER_ARCHDIR)/linker.ld $(LIBDIR)/libk.a
 	@mkdir -p $(BOOTDIR)
-	$(CC) -MD -T $(KER_ARCHDIR)/linker.ld -o $@ $(KER_CFLAGS) $(KER_LINK_LIST) -L$(LIBDIR) -fuse-ld=lld -static
+	ld.lld -n -T $(KER_ARCHDIR)/linker.ld -o $@ $(KER_LINK_LIST) -L$(LIBDIR) --Map $(BUILD)kernel.map -static
 	grub-file --is-x86-multiboot2 $(BOOTDIR)/$(OS_NAME).kernel
 
 $(BUILD)%.o: %.c Makefile kernel/make.config

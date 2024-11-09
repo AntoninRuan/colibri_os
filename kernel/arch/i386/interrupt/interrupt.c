@@ -1,7 +1,7 @@
 #include <stdint.h>
 
+#include <kernel/x86.h>
 #include <kernel/arch/i386/interrupt.h>
-#include <kernel/arch/i386/gdt.h>
 
 struct interrupt_descriptor {
     uint16_t addr_low;
