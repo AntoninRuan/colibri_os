@@ -4,7 +4,8 @@
 
 ### Keyboard input
 
-- [ ] Input via PS/2
+- [x] Input via PS/2
+- [ ] Handling PS/2 set 2
 - [ ] Implement USB keyboard support
 
 ### Framebuffer rendering
@@ -36,11 +37,12 @@
 ## Memory
 
 - [x] Setup a GDT
-- [ ] Setting paging + memory allocator
+- [x] Setup paging
+- [ ] Add page allocator
 
 ## Misc
 
 - [x] Support multiboot2
 - [x] Replace gcc with clang for easier cross compiling
 - [ ] Basic logging (maybe over serial port)
-- [ ] Add support for x86_64
+- [x] Add support for x86_64

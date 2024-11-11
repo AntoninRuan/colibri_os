@@ -4,7 +4,7 @@ BUILD   := build/
 BOOTDIR := $(SYSROOT)/boot
 LIBDIR := $(SYSROOT)/usr/lib
 
-HOST ?= i686-pc-none-elf
+HOST ?= x86_64-pc-none-elf
 HOSTARCH_QEMU != ./target-triplet-to-arch.sh $(HOST)
 HOSTARCH := $(subst _,-,$(HOSTARCH_QEMU))
 
@@ -33,7 +33,7 @@ qemu: $(OS_NAME).iso
 	qemu-system-$(HOSTARCH_QEMU) $(QEMU_FLAGS)
 
 qemu-gdb: $(OS_NAME).iso .gdbinit
-	qemu-system-$(HOSTARCH_QEMU) $(QEMU_FLAGS) -s -S
+	qemu-system-$(HOSTARCH_QEMU) $(QEMU_FLAGS) -s -S -no-shutdown
 
 $(OS_NAME).iso: $(BOOTDIR)/grub/grub.cfg $(BOOTDIR)/$(OS_NAME).kernel
 	grub-mkrescue -o $(OS_NAME).iso $(SYSROOT)
@@ -62,7 +62,7 @@ $(LIBDIR)/libk.a: $(LIBK_OBJS)
 
 $(BUILD)%.libk.o: %.c Makefile libc/make.config
 	@mkdir -p $(@D)
-	$(CC) -MD -c $< -o $@ $(LIBK_CFLAGS)
+	$(CC) -MD -c $< -o $@ $(LIBK_CFLAGS) $(CODE_MODEL)
 
 # Making the kernel
 include kernel/make.config
@@ -73,13 +73,13 @@ KER_OBJS := $(addprefix $(BUILD), $(KER_OBJS))
 
 $(BOOTDIR)/$(OS_NAME).kernel: $(KER_OBJS) $(KER_ARCHDIR)/linker.ld $(LIBDIR)/libk.a
 	@mkdir -p $(BOOTDIR)
-	ld.lld -n -T $(KER_ARCHDIR)/linker.ld -o $@ $(KER_LINK_LIST) -L$(LIBDIR) --Map $(BUILD)kernel.map -static
+	ld.lld -T $(KER_ARCHDIR)/linker.ld -o $@ $(KER_LINK_LIST) -L$(LIBDIR) --Map $(BUILD)kernel.map
 	grub-file --is-x86-multiboot2 $(BOOTDIR)/$(OS_NAME).kernel
 
 $(BUILD)%.o: %.c Makefile kernel/make.config
 	@mkdir -p $(@D)
-	$(CC) -MD -c $< -o $@ $(KER_CFLAGS)
+	$(CC) -MD -c $< -o $@ $(KER_CFLAGS) -static $(CODE_MODEL)
 
 $(BUILD)%.o: %.S Makefile kernel/make.config
 	@mkdir -p $(@D)
-	$(CC) -MD -c $< -o $@ $(KER_CFLAGS)
+	$(CC) -MD -c $< -o $@ $(KER_CFLAGS) -static $(CODE_MODEL)

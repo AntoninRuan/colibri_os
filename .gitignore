@@ -3,6 +3,7 @@ sysroot/
 
 *.iso
 *.kernel
+build/
 **/*.o
 **/*.d
 **/*.a
