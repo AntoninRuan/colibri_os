@@ -40,9 +40,19 @@
 - [x] Setup paging
 - [ ] Add page allocator
 
+## CPU Extensions
+
+### x86-64
+
+- [x] Add support for x86_64
+
+#### SSE
+
+- [x] Enable SSE support
+- [ ] Add #XM handler
+
 ## Misc
 
 - [x] Support multiboot2
 - [x] Replace gcc with clang for easier cross compiling
 - [ ] Basic logging (maybe over serial port)
-- [x] Add support for x86_64

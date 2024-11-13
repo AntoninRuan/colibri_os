@@ -24,7 +24,7 @@ clean:
 
 CPUS ?= 1
 
-QEMU_FLAGS := -m 128 -no-reboot -smp $(CPUS) -cdrom $(OS_NAME).iso
+QEMU_FLAGS := -m 256M -no-reboot -smp $(CPUS) -cdrom $(OS_NAME).iso
 
 .gdbinit: Makefile
 	echo -e 'target remote localhost:1234\nfile $(BOOTDIR)/$(OS_NAME).kernel\n' > .gdbinit
@@ -33,7 +33,7 @@ qemu: $(OS_NAME).iso
 	qemu-system-$(HOSTARCH_QEMU) $(QEMU_FLAGS)
 
 qemu-gdb: $(OS_NAME).iso .gdbinit
-	qemu-system-$(HOSTARCH_QEMU) $(QEMU_FLAGS) -s -S -no-shutdown
+	qemu-system-$(HOSTARCH_QEMU) $(QEMU_FLAGS) -s -S -no-shutdown -d int -monitor telnet:127.0.0.1:7777,server,nowait
 
 $(OS_NAME).iso: $(BOOTDIR)/grub/grub.cfg $(BOOTDIR)/$(OS_NAME).kernel
 	grub-mkrescue -o $(OS_NAME).iso $(SYSROOT)
