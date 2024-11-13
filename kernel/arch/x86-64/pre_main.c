@@ -1,17 +1,43 @@
+#include <stdio.h>
+
+#include <kernel/acpi.h>
 #include <kernel/keyboard.h>
 #include <kernel/multiboot2.h>
-#include <kernel/x86.h>
+#include <kernel/tty.h>
+#include <kernel/x86-64.h>
 
-#include <kernel/arch/i386/apic.h>
-#include <kernel/arch/i386/interrupt.h>
-#include <kernel/arch/i386/ioapic.h>
+#include <kernel/arch/x86-64/apic.h>
+#include <kernel/arch/x86-64/interrupt.h>
+#include <kernel/arch/x86-64/ioapic.h>
 
 extern uint8_t vector_handler_0x21;
 
 void pre_main(unsigned long magic, unsigned long addr) {
-    // At this point addr is still a physical address
-    // TODO convert addr to vma
-    load_multiboot_info(magic, addr);
+    struct multiboot_memory_map *memory_map = NULL;
+    struct multiboot_framebuffer *framebuffer = NULL;
+    struct multiboot_acpi_old *acpi_old = NULL;
+    struct multiboot_acpi_new *acpi_new = NULL;
+
+    struct multiboot_boot_information boot_info = {
+        .memory_map = &memory_map,
+        .framebuffer = &framebuffer,
+        .acpi_old = &acpi_old,
+        .acpi_new = &acpi_new
+    };
+
+    // addr is a physical addr but the identity mapping
+    // used for the long jump is still active
+    load_multiboot_info(magic, addr, &boot_info);
+
+    terminal_initialize(&framebuffer->fb);
+
+    printf("Hello virtual world!\n");
+
+    if (acpi_old)
+        load_rsdp((struct rsdp *) &acpi_old->rsdp);
+
+    if (acpi_new)
+        load_xsdp((struct xsdp *) &acpi_new->rsdp);
 
     load_idt();                 // Setup interrupts
     enable_lapic();

@@ -215,7 +215,31 @@ struct multiboot_load_base_addr {
     uint32_t addr;
 };
 
-void load_multiboot_info(uint32_t magic, uint32_t addr);
+struct multiboot_boot_information {
+    struct multiboot_boot_cmd_line **cmd_line;
+    struct multiboot_bootloader **bootloader;
+    struct multiboot_module **module;
+    uint64_t module_size;
+    struct multiboot_basic_meminfo **basic_meminfo;
+    struct multiboot_bios_boot_device **bios_boot_device;
+    struct multiboot_memory_map **memory_map;
+    struct multiboot_vbe **vbe;
+    struct multiboot_framebuffer **framebuffer;
+    struct multiboot_elf_symbols **elf_symbols;
+    struct multiboot_apm **apm;
+    struct multiboot_efi32 **efi32;
+    struct multiboot_efi64 **efi64;
+    struct multiboot_smbios **smbios;
+    struct multiboot_acpi_old **acpi_old;
+    struct multiboot_acpi_new **acpi_new;
+    struct multiboot_network **network;
+    struct multiboot_efi_mmap **efi_mmap;
+    struct multiboot_efi32_im **efi32_handle;
+    struct multiboot_efi64_im **efi64_handle;
+    struct multiboot_load_base_addr **load_base_addr;
+};
+
+void load_multiboot_info(uint32_t magic, uint64_t addr, struct multiboot_boot_information*);
 
 #endif // __is_asm
 
