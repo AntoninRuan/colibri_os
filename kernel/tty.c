@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -6,6 +7,7 @@
 #include <kernel/vga.h>
 #include <kernel/tty.h>
 #include <kernel/pc_font.h>
+#include <kernel/arch/x86-64/vm.h>
 
 extern uint8_t _binary_font_psfu_start;
 extern uint8_t _binary_font_psfu_end;
@@ -19,6 +21,11 @@ uint16_t fg, bg;
 
 int terminal_initialize(struct framebuffer *fb) {
     memcpy(&display, fb, sizeof(struct framebuffer));
+    // display.addr is still a physical address
+    // asking to map it to a virtual one
+    uint64_t vaddr = (uint64_t) map_mmio(display.addr, display.pitch * display.height, true);
+    display.addr = vaddr;
+
     font_start = (uint8_t *)(&_binary_font_psfu_start + font->headersize);
 
     TERMINAL_HEIGHT = display.height / (font->height + 1);

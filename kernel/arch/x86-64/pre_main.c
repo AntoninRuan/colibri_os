@@ -9,6 +9,7 @@
 #include <kernel/arch/x86-64/apic.h>
 #include <kernel/arch/x86-64/interrupt.h>
 #include <kernel/arch/x86-64/ioapic.h>
+#include <kernel/arch/x86-64/vm.h>
 
 extern uint8_t vector_handler_0x21;
 
@@ -28,6 +29,8 @@ void pre_main(unsigned long magic, unsigned long addr) {
     // addr is a physical addr but the identity mapping
     // used for the long jump is still active
     load_multiboot_info(magic, addr, &boot_info);
+
+    kvminit(memory_map);
 
     terminal_initialize(&framebuffer->fb);
 
