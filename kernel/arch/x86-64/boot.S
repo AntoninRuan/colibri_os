@@ -36,17 +36,11 @@ stack_top:
 _start:
     // Still in Procted Mode (32 bit)
 
-    // Disable interrups until they are setup
-    cli
+    // Multiboot2 loader must have already disabled paging and interrupts
 
     // Save multiboot magic value and address of multiboot2 info struct
     movl %ebx, %esi
     movl %eax, %edi
-
-    // Make sure paging is disabled
-    movl %cr0, %eax
-    andl $(~(1<<31)), %eax
-    movl %eax, %cr0
 
 #define KERNEL_VMA 0xFFFFFFFF80000000
 #define PRESENT 1
@@ -107,7 +101,7 @@ fill_p2:
     orl $(1 << 8), %eax
     wrmsr                       // Writing from edx:eax
 
-    lgdt (gdtr32 - KERNEL_VMA)
+    lgdt (gdtr_low - KERNEL_VMA)
 
     movl %cr0, %eax
     orl $(1<<31), %eax          // Enable paging
@@ -131,25 +125,39 @@ long_mode_jump:
     lea kernel64, %rax
     jmpq *%rax
 
-    // jmp kernel64
-
 kernel64:
     // Setup stack
     movq $stack_top, %rsp
 
+    // Update gdt to read in higher half mapped memory
+    lgdt gdtr_high
 
-    // Entered long mode
+    // Enable SSE extension
+    movq %cr4, %rax
+    orq $1 << 9, %rax           // set OSFXSR Flag
+    // TODO add #XM handler
+    // orq $1 << 10, %rax          // set OSXMMEXCPT Flag
+    movq %rax, %cr4
+
+    movq %cr0, %rax
+    andq $~(1<<2), %rax         // clear EM flag
+    orq $1<<1, %rax             // set MP flag
+    movq %rax, %cr0
+
     call pre_main
 
     // Transfer control to kernel.c
     call main
 
+noSSE:
     // Hang if kernel_main returns. (Should not happen)
     cli
 1:  hlt
     jmp 1b
 
     .section .bss, "aw", @nobits
+    .global pml4
+    .global kernel_p3_hh
     .align 4096
 pml4:
     .skip 4096
@@ -202,10 +210,10 @@ gdt64:
     .quad 0
     .quad 0
 
-gdtr32:
-    .short gdtr32 - gdt64 - 1
+gdtr_low:
+    .short gdtr_low - gdt64 - 1
     .long (gdt64 - KERNEL_VMA)
 
-gdtr64:
-    .short gdtr32 - gdt64 - 1
+gdtr_high:
+    .short gdtr_low - gdt64 - 1
     .quad gdt64
