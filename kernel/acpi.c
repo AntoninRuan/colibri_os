@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <kernel/acpi.h>
+#include <kernel/arch/x86-64/vm.h>
 
 struct rsdt *rsdt = 0;
 struct xsdt *xsdt = 0;
@@ -18,6 +19,13 @@ bool validate_sdt(struct acpi_sdt_header *header) {
     return !(sum & 0xFF);
 }
 
+// rsdt is a physical address, everything informations
+// needed must be read before the unmapping of the identiy mapping
+// used during the long jump. rsdt could actually be mapped but
+// the address it contains would still be physical one
+// If it is needed to read more informations after boot, it will
+// be needed to map it and every address it contains and translate
+// as they are needed
 int load_rsdp(struct rsdp *rsdp) {
     uint32_t sum = 0;
     uint8_t *byte = (uint8_t *) rsdp;
@@ -32,6 +40,7 @@ int load_rsdp(struct rsdp *rsdp) {
     return 0;
 }
 
+// Same remark as for rsdt
 int load_xsdp(struct xsdp *xsdp) {
     if (load_rsdp((struct rsdp *) xsdp)) return 1;
 
@@ -45,6 +54,7 @@ int load_xsdp(struct xsdp *xsdp) {
     if (sum & 0xFF) return 1;
 
     xsdt = (struct xsdt *) xsdp->xsdt_address;
+    // xsdt = (struct xsdt *) map_mmio(xsdp->xsdt_addr, sizeof(struct xsdp), false);
 
     return 0;
 }

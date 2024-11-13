@@ -3,14 +3,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <kernel/x86.h>
+#include <kernel/x86-64.h>
 #include <kernel/acpi.h>
 
-#include <kernel/arch/i386/interrupt.h>
-#include <kernel/arch/i386/apic.h>
+#include <kernel/arch/x86-64/apic.h>
+#include <kernel/arch/x86-64/interrupt.h>
+#include <kernel/arch/x86-64/vm.h>
 
 
-uint64_t lapic_base_address = 0;
+void *lapic_base_address = 0;
 bool support_xapic2 = false;
 
 void disable_pic() {
@@ -87,7 +88,10 @@ int enable_lapic() {
 
     wrmsr(IA32_APIC_BASE, apic_base);
 
-    lapic_base_address = (apic_base & 0xFFFFF000); // Only used if using xapic
+    if(!support_xapic2) {
+        // 0x400 is the size of all lapic registers
+        lapic_base_address = map_mmio(apic_base & 0xFFFFF000, 0x400, true);
+    }
 
     uint32_t spurious_vector = 0xFF | 0x100;
 

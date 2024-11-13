@@ -34,8 +34,6 @@ void pre_main(unsigned long magic, unsigned long addr) {
 
     terminal_initialize(&framebuffer->fb);
 
-    printf("Hello virtual world!\n");
-
     if (acpi_old)
         load_rsdp((struct rsdp *) &acpi_old->rsdp);
 

@@ -3,8 +3,9 @@
 #include <stdint.h>
 
 #include <kernel/arch/x86-64/ioapic.h>
+#include <kernel/arch/x86-64/vm.h>
 
-uint64_t io_apic_base_addr = 0;
+void *io_apic_base_addr = 0;
 
 uint32_t read_ioapic_register(uint8_t reg) {
     *(uint32_t *) io_apic_base_addr = (uint32_t) reg;
@@ -53,8 +54,7 @@ int read_madt() {
             case IC_TYPE_IO_APIC:
                 struct ic_io_apic *ioapic = (struct ic_io_apic *) header;
                 if (io_apic_base_addr == 0)
-                    io_apic_base_addr = ioapic->address;
-                (void) ioapic;
+                    io_apic_base_addr = map_mmio(ioapic->address, 0x20, true);
                 break;
 
             default:

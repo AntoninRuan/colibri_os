@@ -1,16 +1,54 @@
+.macro push_gp_reg
+    pushq %rax
+    pushq %rcx
+    pushq %rdx
+    pushq %rbx
+    pushq %rsp
+    pushq %rbp
+    pushq %rsi
+    pushq %rdi
+    pushq %r8
+    pushq %r9
+    pushq %r10
+    pushq %r11
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
+.endm
+
+.macro pop_gp_reg
+    popq %r15
+    popq %r14
+    popq %r13
+    popq %r12
+    popq %r11
+    popq %r10
+    popq %r9
+    popq %r8
+    popq %rdi
+    popq %rsi
+    popq %rbp
+    popq %rsp
+    popq %rbx
+    popq %rdx
+    popq %rcx
+    popq %rax
+.endm
+
     .text
 isr_wrapper:
-    // TODO create push context
+    push_gp_reg
 
     movq %rsp, %rdi             // Pass stack addr as an args for function call
     call interrupt_dispatch
     mov %rax, %rsp              // Restore %esp to what it was
 
-    // TODO pop context
+    pop_gp_reg
 
     add $16, %rsp               // remove vector number + error code
 
-    iret
+    iretq
 
 .macro vector_no_err vec_num
     .align 16

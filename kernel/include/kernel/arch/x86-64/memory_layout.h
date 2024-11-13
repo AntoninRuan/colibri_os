@@ -3,6 +3,27 @@
 
 #include <stdint.h>
 
+#define SMALL_PAGE_SIZE  0x1000    // 4K
+#define MEDIUM_PAGE_SIZE 0x200000  // 2M = 4K * 512
+#define HUGUE_PAGE_SIZE 040000000  // 1G = 2M * 512
+
+// Only works for symbols in the higher half kernel
+#define PHYSICAL_ADDRESS(symbol) ((uint64_t) &symbol - (uint64_t) &_kernel_virtual_offset)
+
+#define PML4_ENTRY(addr) (((uint64_t) addr >> 39) & 0x1FF)
+#define PDPT_ENTRY(addr) (((uint64_t) addr >> 30) & 0x1FF)
+#define PD_ENTRY(addr)   (((uint64_t) addr >> 21) & 0x1FF)
+#define PT_ENTRY(addr)   (((uint64_t) addr >> 12) & 0x1FF)
+
+#define PAGE_START(addr, size) ((uint64_t) (addr) - ((uint64_t)(addr) % (uint64_t) size))
+#define PAGE_END(addr, size) (PAGE_START(addr, size) + size - 1)
+
+#define KERNEL_P3_HH 511
+#define KERNEL_MMIO 511
+#define PML4_RECURSE_ENTRY 510
+
+extern uint8_t _kernel_virtual_offset;
+
 typedef union pml4e_t {
     struct {
         uint64_t present   : 1;  // Bit 0
