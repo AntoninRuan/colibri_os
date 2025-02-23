@@ -81,6 +81,21 @@ void kvminit(struct multiboot_memory_map *mmap) {
     kernel_p3_hh[511] = mmio;
 }
 
+void clean_paging() {
+    // Remove identity mapping used for long mode jump
+    pml4e_t *pml4 = (pml4e_t *) pdpt_va(PML4_RECURSE_ENTRY);
+    pml4[0].present = false;
+
+    // Remove useless pages in kernel_p3_hh
+    uint64_t first_useless = PAGE_END(&_kernel_virtual_end, MEDIUM_PAGE_SIZE) + 1;
+    pde_t *kernel_p2 = (pde_t *) pd_va(KERNEL_P3_HH, 510);
+    for (uint16_t i = PD_ENTRY(first_useless); i < 512; i ++)
+        kernel_p2[i].present = false;
+
+    kernel_heap.start = first_useless;
+    kernel_heap.size = 0;
+}
+
 // TODO add check if map already exists
 void *map_mmio(uint64_t physical, size_t size, bool writable) {
     uint64_t offset = physical % MEDIUM_PAGE_SIZE;

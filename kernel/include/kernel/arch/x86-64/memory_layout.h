@@ -23,6 +23,7 @@
 #define PML4_RECURSE_ENTRY 510
 
 extern uint8_t _kernel_virtual_offset;
+extern uint8_t _kernel_virtual_end;
 
 typedef union pml4e_t {
     struct {
