@@ -52,6 +52,14 @@ uint64_t pt_va(uint16_t pml4_offset, uint16_t pdpt_offset, uint16_t pd_offset) {
                   pd_offset, 0);
 }
 
+typedef struct region_t {
+    uint64_t start;
+    uint64_t size;
+} region_t;
+
+region_t ram_available = {0};
+region_t kernel_heap = {0};
+
 void kvminit(struct multiboot_memory_map *mmap) {
     // Determine RAM area
     uint64_t max_ram_base_addr = 0;
@@ -71,6 +79,10 @@ void kvminit(struct multiboot_memory_map *mmap) {
 
     phys_memory_start = max_ram_base_addr;
     phys_memory_end = max_ram_base_addr + max_ram_size - 1;
+
+    uint64_t kernel_physical_end = PHYSICAL_ADDRESS(_kernel_virtual_end);
+    ram_available.start = PAGE_END(kernel_physical_end, SMALL_PAGE_SIZE) + 1;
+    ram_available.size = phys_memory_end - ram_available.start + 1;
 
     // Create page dir for mmio pages for the kernel
     pdpte_t mmio;
