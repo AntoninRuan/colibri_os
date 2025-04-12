@@ -3,12 +3,15 @@
 
 #include <stdint.h>
 
-#define SMALL_PAGE_SIZE  0x1000    // 4K
-#define MEDIUM_PAGE_SIZE 0x200000  // 2M = 4K * 512
-#define HUGUE_PAGE_SIZE 040000000  // 1G = 2M * 512
+#define SMALL_PAGE_SIZE  0x1000     // 4K
+#define MEDIUM_PAGE_SIZE 0x200000   // 2M = 4K * 512
+#define BIG_PAGE_SIZE    0x40000000 // 1G = 2M * 512
 
 // Only works for symbols in the higher half kernel
 #define PHYSICAL_ADDRESS(symbol) ((uint64_t) &symbol - (uint64_t) &_kernel_virtual_offset)
+
+// pml4[509]
+#define PHYSICAL_OFFSET 0xFFFFFE8000000000
 
 #define PML4_ENTRY(addr) (((uint64_t) addr >> 39) & 0x1FF)
 #define PDPT_ENTRY(addr) (((uint64_t) addr >> 30) & 0x1FF)
@@ -93,7 +96,7 @@ typedef union pte_t {
         uint64_t global    : 1;  // Bit 8: Ignored if PS is not set
         uint64_t ignored   : 2;  // Bit 9..10
         uint64_t restart   : 1;  // Bit 11: Used only if HLAT paging is enabled
-        uint64_t pd_addr   : 39; // Bit 12..50
+        uint64_t phys_addr   : 39; // Bit 12..50
         uint64_t           : 1;  // Bit 51
         uint64_t ignored_2 : 7;  // Bit 52..58
         uint64_t protect_key : 4;// Bit 59..62 Ignored if PS is not set
@@ -101,5 +104,12 @@ typedef union pte_t {
     } __attribute__((packed));
     uint64_t raw;
 } pte_t;
+
+typedef struct memory_area_t memory_area_t;
+struct memory_area_t {
+    uint64_t start;
+    uint64_t size;
+    memory_area_t *next;
+};
 
 #endif // MEMORY_LAYOUT_H

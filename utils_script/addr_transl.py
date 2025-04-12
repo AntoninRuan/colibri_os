@@ -9,7 +9,7 @@ def main():
             print("WARNING: Address is not canonical")
 
         pml4_entry = (physical_addr >> 39) & 0x1FF
-        pdpr_entry = (physical_addr >> 30) & 0x1FF
+        pdpt_entry = (physical_addr >> 30) & 0x1FF
         pd_entry = (physical_addr >> 21) & 0x1FF
         pt_entry = (physical_addr >> 12) & 0x1FF
         offset_small = (physical_addr) & 0xFFF
@@ -18,7 +18,7 @@ def main():
         print(f"Address {hex(physical_addr)} translates to:")
 
         print(f"pml4 entry={pml4_entry}")
-        print(f"pdpr entry={pdpr_entry}")
+        print(f"pdpt entry={pdpt_entry}")
         print(f"pd   entry={pd_entry}")
         print(f"For 2M pages:")
         print(f"     offset  ={offset_big}")

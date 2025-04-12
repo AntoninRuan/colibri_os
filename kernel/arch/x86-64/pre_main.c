@@ -44,8 +44,6 @@ void pre_main(unsigned long magic, unsigned long addr) {
     enable_lapic();
     read_madt();
 
-    clean_paging();
-
     // Enable keyboard support
     init_keyboard();
     set_idt_entry(IRQ_VECTOR_KEYBOARD, (uint64_t) &vector_handler_0x21,

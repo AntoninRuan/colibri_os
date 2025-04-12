@@ -1,5 +1,4 @@
 #include <kernel/multiboot2.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -7,12 +6,9 @@
 #include <kernel/kernel.h>
 #include <kernel/arch/x86-64/memory_layout.h>
 #include <kernel/arch/x86-64/vm.h>
+#include <kernel/arch/x86-64/physical_allocator.h>
 
-uint64_t phys_memory_start;
-uint64_t phys_memory_end;
-uint16_t first_free_page_mmio = 0;
-
-alignas(4096) pde_t kernel_mmio[512] = {0}; // should be put @ kernel_p3_hh[511]
+alignas(4096) pdpte_t physical_mapping[512] = {0}; // Goes to pml4[509]
 
 uint64_t get_va(uint16_t pml4_e, uint16_t pdpt_e, uint16_t pd_e, uint16_t pt_e, uint32_t offset) {
     uint64_t addr = 0;
@@ -52,15 +48,24 @@ uint64_t pt_va(uint16_t pml4_offset, uint16_t pdpt_offset, uint16_t pd_offset) {
                   pd_offset, 0);
 }
 
-typedef struct region_t {
-    uint64_t start;
-    uint64_t size;
-} region_t;
-
-region_t ram_available = {0};
-region_t kernel_heap = {0};
+memory_area_t ram_available = {0};
 
 void kvminit(struct multiboot_memory_map *mmap) {
+    // Maps 512GB of physical memory for easy access in allocators
+    for (int i = 0; i < 512; i ++) {
+        pdpte_t entry = {0};
+        entry.raw = (uint64_t) BIG_PAGE_SIZE * i;
+        entry.present = true;
+        entry.writable = true;
+        entry.page_size = 1;
+        physical_mapping[i] = entry;
+    }
+    pml4e_t physical_entry = {0};
+    physical_entry.raw = (uint64_t)(PHYSICAL_ADDRESS(physical_mapping));
+    physical_entry.present = true;
+    physical_entry.writable = true;
+    ((pml4e_t *)(pdpt_va(PML4_RECURSE_ENTRY)))[509] = physical_entry;
+
     // Determine RAM area
     uint64_t max_ram_base_addr = 0;
     uint64_t max_ram_size = 0;
@@ -77,90 +82,17 @@ void kvminit(struct multiboot_memory_map *mmap) {
     if (!max_ram_size)
         panic("kvminit: no ram detected");
 
-    phys_memory_start = max_ram_base_addr;
-    phys_memory_end = max_ram_base_addr + max_ram_size - 1;
+    // uint64_t phys_memory_start = max_ram_base_addr;
+    uint64_t phys_memory_end = max_ram_base_addr + max_ram_size - 1;
 
     uint64_t kernel_physical_end = PHYSICAL_ADDRESS(_kernel_virtual_end);
     ram_available.start = PAGE_END(kernel_physical_end, SMALL_PAGE_SIZE) + 1;
     ram_available.size = phys_memory_end - ram_available.start + 1;
 
-    // Create page dir for mmio pages for the kernel
-    pdpte_t mmio;
-    mmio.raw = PHYSICAL_ADDRESS(kernel_mmio);
-    mmio.present = true;
-    mmio.writable = true;
-    pdpte_t *kernel_p3_hh = (pdpte_t *) pdpt_va(KERNEL_P3_HH);
-    kernel_p3_hh[511] = mmio;
+    init_phys_allocator(&ram_available);
+}
+void* map_mmio(uint64_t physical, size_t size, bool writable) {
+    return (void *) (physical + PHYSICAL_OFFSET);
 }
 
-void clean_paging() {
-    // Remove identity mapping used for long mode jump
-    pml4e_t *pml4 = (pml4e_t *) pdpt_va(PML4_RECURSE_ENTRY);
-    pml4[0].present = false;
-
-    // Remove useless pages in kernel_p3_hh
-    uint64_t first_useless = PAGE_END(&_kernel_virtual_end, MEDIUM_PAGE_SIZE) + 1;
-    pde_t *kernel_p2 = (pde_t *) pd_va(KERNEL_P3_HH, 510);
-    for (uint16_t i = PD_ENTRY(first_useless); i < 512; i ++)
-        kernel_p2[i].present = false;
-
-    kernel_heap.start = first_useless;
-    kernel_heap.size = 0;
-}
-
-// TODO add check if map already exists
-void *map_mmio(uint64_t physical, size_t size, bool writable) {
-    uint64_t offset = physical % MEDIUM_PAGE_SIZE;
-    uint64_t start = physical - offset;
-    uint64_t page_needed = ((PAGE_START(physical + size, MEDIUM_PAGE_SIZE) - start) / MEDIUM_PAGE_SIZE) + 1;
-
-    if (page_needed >= 512) {
-        return NULL;
-    }
-
-    uint64_t jump_offset = 1L << ceillog2(page_needed);
-    bool enough_space;
-    uint64_t i;
-    for (i = first_free_page_mmio; i < 512; i += jump_offset) {
-        enough_space = true;
-        for (uint64_t j = 0; j < page_needed; j ++) {
-            if (kernel_mmio[i + j].present) {
-                enough_space = false;
-                break;
-            }
-        }
-        if (enough_space) break;
-    }
-
-    if(!enough_space) return NULL;
-
-    for(uint64_t j = 0; j < page_needed; j++) {
-        kernel_mmio[i + j].raw = start + MEDIUM_PAGE_SIZE * j;
-        kernel_mmio[i + j].present = true;
-        kernel_mmio[i + j].writable = writable;
-        kernel_mmio[i + j].page_size = true; // Allocate 2M page
-    }
-
-    if (i == first_free_page_mmio)
-        first_free_page_mmio += page_needed;
-
-    return (void *)(get_va(KERNEL_P3_HH, KERNEL_MMIO, i, -1,offset));
-}
-
-void unmap_mmio(void *addr, size_t size) {
-    if (PML4_ENTRY(addr) != 511 || PDPT_ENTRY(addr) != 511) // Not a mmio mapped addr
-        return;
-    uint64_t first_page = PAGE_START(addr, MEDIUM_PAGE_SIZE);
-    uint64_t last_page = PAGE_START(addr + size, MEDIUM_PAGE_SIZE);
-    uint16_t page_freed = (last_page - first_page) / MEDIUM_PAGE_SIZE + 1;
-
-    uint16_t first_entry = PD_ENTRY(addr);
-    for (int i = 0; i < page_freed; i ++) {
-        kernel_mmio[i + first_entry].present = false;
-    }
-
-    if (first_entry < first_free_page_mmio)
-        first_free_page_mmio = first_entry;
-
-    return;
-}
+void *map_memory(uint64_t pagetable, void *phys, size_t size, void* virt);

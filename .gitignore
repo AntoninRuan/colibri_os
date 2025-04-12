@@ -1,8 +1,10 @@
 .cache/
 sysroot/
+**/__pycache__/
 
 *.iso
 *.kernel
+compile_commands.json
 build/
 **/*.o
 **/*.d
