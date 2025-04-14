@@ -13,10 +13,11 @@
 // pml4[509]
 #define PHYSICAL_OFFSET 0xFFFFFE8000000000
 
-#define PML4_ENTRY(addr) (((uint64_t) addr >> 39) & 0x1FF)
-#define PDPT_ENTRY(addr) (((uint64_t) addr >> 30) & 0x1FF)
-#define PD_ENTRY(addr)   (((uint64_t) addr >> 21) & 0x1FF)
-#define PT_ENTRY(addr)   (((uint64_t) addr >> 12) & 0x1FF)
+#define VA2INDEX(va, level) (((uint64_t) va >> (12 + level * 9)) & 0x1FF)
+#define VA2PML4_INDEX(va)  VA2INDEX(va, 3)
+#define VA2PDPT_INDEX(va)  VA2INDEX(va, 2)
+#define VA2PD_INDEX(va)    VA2INDEX(va, 1)
+#define VA2PT_INDEX(va)    VA2INDEX(va, 0)
 
 #define PAGE_START(addr, size) ((uint64_t) (addr) - ((uint64_t)(addr) % (uint64_t) size))
 #define PAGE_END(addr, size) (PAGE_START(addr, size) + size - 1)
@@ -67,7 +68,7 @@ typedef union pdpte_t {
         /* If PS is set:
          *     - pd_addr.0 is PAT bit
          *     - pd_addr.1..17 are reserved and must be 0
-         *     For a PDE ony pd_addr.1..8 are reserved
+         *     For a PDE only pd_addr.1..8 are reserved
          *     - pd_addr.18..38 are physical addr of the start of the page
          * Else:
          *     - pd.addr is the physical address 4KB aligned of the pd referenced
@@ -109,7 +110,12 @@ typedef struct memory_area_t memory_area_t;
 struct memory_area_t {
     uint64_t start;
     uint64_t size;
+    uint8_t flags;
     memory_area_t *next;
 };
+
+#define MEMORY_FLAG_WRITE 1
+#define MEMORY_FLAG_USER  (1 << 1)
+#define MEMORY_FLAG_EXEC  (1 << 2)
 
 #endif // MEMORY_LAYOUT_H

@@ -33,7 +33,7 @@ void disable_pic() {
     outb(PIC_DATA_SLAVE, 0xFF);
 }
 
-bool check_lapic_availibity() {
+bool check_lapic_availability() {
     unsigned int eax, ebx, ecx, edx;
     __get_cpuid(1, &eax, &ebx, &ecx, &edx);
     bool has_lapic = (edx & 0x100);
@@ -74,7 +74,7 @@ void send_eoi() {
 extern uint8_t vector_handler_0xFF;
 
 int enable_lapic() {
-    if(!check_lapic_availibity()) return 1;
+    if(!check_lapic_availability()) return 1;
 
     disable_pic();
 

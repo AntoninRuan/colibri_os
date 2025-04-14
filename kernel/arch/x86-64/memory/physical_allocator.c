@@ -70,10 +70,13 @@ void bit_clear(uint64_t index) {
 }
 
 void init_phys_allocator(memory_area_t *ram_available) {
+    lst_init(&free);
     base = PAGE_END(ram_available->start, SMALL_PAGE_SIZE) + 1;
     uint64_t page_count = (ram_available->size / SMALL_PAGE_SIZE);
+    if (page_count == 0) return;
 
-    alloc_size = (page_count / 8) + 1;
+    alloc = (char *) base;
+    alloc_size = ((page_count - 1) / 8) + 1;
     memset(alloc, 0, alloc_size);
 
     uint64_t index = page_index(base + alloc_size) + 1;

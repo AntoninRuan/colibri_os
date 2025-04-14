@@ -1,14 +1,21 @@
-#include <kernel/multiboot2.h>
+#include <cpuid.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #include <kernel/kernel.h>
+#include <kernel/multiboot2.h>
+#include <kernel/x86-64.h>
 #include <kernel/arch/x86-64/memory_layout.h>
 #include <kernel/arch/x86-64/vm.h>
 #include <kernel/arch/x86-64/physical_allocator.h>
 
 alignas(4096) pdpte_t physical_mapping[512] = {0}; // Goes to pml4[509]
+
+bool nx_flag_supported;
+bool big_page_size_supported;
+extern uint8_t pml4;
+pml4e_t *kernel_pml4;
 
 uint64_t get_va(uint16_t pml4_e, uint16_t pdpt_e, uint16_t pd_e, uint16_t pt_e, uint32_t offset) {
     uint64_t addr = 0;
@@ -48,18 +55,20 @@ uint64_t pt_va(uint16_t pml4_offset, uint16_t pdpt_offset, uint16_t pd_offset) {
                   pd_offset, 0);
 }
 
-memory_area_t ram_available = {0};
-
 void kvminit(struct multiboot_memory_map *mmap) {
-    // Maps 512GB of physical memory for easy access in allocators
-    for (int i = 0; i < 512; i ++) {
-        pdpte_t entry = {0};
-        entry.raw = (uint64_t) BIG_PAGE_SIZE * i;
-        entry.present = true;
-        entry.writable = true;
-        entry.page_size = 1;
-        physical_mapping[i] = entry;
+    kernel_pml4 = (pml4e_t *) &pml4;
+
+    unsigned int eax, ebx, ecx, edx;
+    __get_cpuid(0x80000001, &eax, &ebx, &ecx, &edx);
+    nx_flag_supported = (edx & (1L<<20)) != 0;
+    big_page_size_supported = (edx & (1L<<26)) != 0;
+
+    if(nx_flag_supported) {
+        uint64_t ia32_efer = rdmsr(IA32_EFER);
+        ia32_efer |= (1L << 11);
+        wrmsr(IA32_EFER, ia32_efer);
     }
+
     pml4e_t physical_entry = {0};
     physical_entry.raw = (uint64_t)(PHYSICAL_ADDRESS(physical_mapping));
     physical_entry.present = true;
@@ -82,17 +91,94 @@ void kvminit(struct multiboot_memory_map *mmap) {
     if (!max_ram_size)
         panic("kvminit: no ram detected");
 
-    // uint64_t phys_memory_start = max_ram_base_addr;
     uint64_t phys_memory_end = max_ram_base_addr + max_ram_size - 1;
 
     uint64_t kernel_physical_end = PHYSICAL_ADDRESS(_kernel_virtual_end);
+    memory_area_t ram_available = {0};
     ram_available.start = PAGE_END(kernel_physical_end, SMALL_PAGE_SIZE) + 1;
     ram_available.size = phys_memory_end - ram_available.start + 1;
 
+    // Map ram area for easy access in allocators
+    // TODO update to map only ram_available rather than 512GB
+    for (int i = 0; i < 512; i ++) {
+        pdpte_t entry = {0};
+        entry.raw = (uint64_t) BIG_PAGE_SIZE * i;
+        entry.present = true;
+        entry.writable = true;
+        entry.xd = nx_flag_supported;
+        entry.page_size = 1;
+        physical_mapping[i] = entry;
+    }
+
+    walk(kernel_pml4, (void *)&nx_flag_supported, false);
     init_phys_allocator(&ram_available);
 }
+
+uint64_t vmflag_to_x86flag(uint64_t flag) {
+    uint64_t result = 0;
+    if (nx_flag_supported) {
+        result |= (flag & MEMORY_FLAG_EXEC) << 61;
+    }
+    result |= (flag & (MEMORY_FLAG_WRITE | MEMORY_FLAG_USER)) << 1;
+    return result;
+}
+
+// Return physical-mapped address of the page descriptor for virtual
+// address va in pagetable, if alloc is true create the necessary
+// intermediate, else if one is missing return null
+void* walk(pml4e_t *pagetable, void *va, bool alloc) {
+    uint64_t addr = (uint64_t) va;
+    pdpte_t *current_pt = (pdpte_t *) pagetable;
+    pdpte_t *entry;
+    uint64_t index;
+
+    for (int level = 3; level > 0; level --) {
+        index = VA2INDEX(addr, level);
+        entry = &current_pt[index];
+        if (entry->present) {
+            if (entry->page_size) {
+                return (void *) entry;
+            }
+            current_pt = (void *)((entry->pd_addr << 12) + PHYSICAL_OFFSET);
+        } else {
+            void* new_pt;
+            if (!alloc || (new_pt = kalloc()) == 0)
+                return 0;
+            entry->raw = (uint64_t) new_pt;
+            entry->present = true;
+            entry->writable = true;
+            entry->user_page = true;
+            current_pt = (void *)(new_pt + PHYSICAL_OFFSET);
+        }
+    }
+    return &current_pt[VA2INDEX(addr, 0)];
+}
+
+// Recursively free a pagetable
+void freewalk(void* pagetable, uint8_t level) {
+    pdpte_t *table = (pdpte_t *) pagetable;
+
+    for (int i = 0; i < 512; i ++) {
+        pdpte_t entry = table[i];
+        if (!entry.present) continue;
+
+        if (!entry.page_size && level) {
+            // We found a child, freeing it
+            void *child = (void *)(entry.pd_addr << 12);
+            freewalk(child + PHYSICAL_OFFSET, level-1);
+            entry.present = false;
+            kfree(child);
+        } else if (entry.page_size || !level) {
+            // leaf
+            panic("freewalk: some leaf were not freed");
+        }
+    }
+}
+
+int mappages(pml4e_t *pagetable, void *va, uint64_t sz, void *pa,
+             uint8_t flags) {}
+
+
 void* map_mmio(uint64_t physical, size_t size, bool writable) {
     return (void *) (physical + PHYSICAL_OFFSET);
 }
-
-void *map_memory(uint64_t pagetable, void *phys, size_t size, void* virt);

@@ -33,6 +33,8 @@
 #define MACHINE_CHECK          18
 #define SIMD_ERROR             19
 
+#define IA32_EFER              0xC0000080
+
 // Struct use to read the value of general purposer register after a pushal
 struct registers_t {
     uint64_t r15;
