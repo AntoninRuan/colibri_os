@@ -17,44 +17,6 @@ bool big_page_size_supported;
 extern uint8_t pml4;
 pml4e_t *kernel_pml4;
 
-uint64_t get_va(uint16_t pml4_e, uint16_t pdpt_e, uint16_t pd_e, uint16_t pt_e, uint32_t offset) {
-    uint64_t addr = 0;
-
-    bool small_page = (bool) (pt_e < 512);
-    if (pml4_e & 0x100)
-        addr |= 0xFFFFL << 48;
-
-    addr |= (uint64_t) pml4_e << 39;
-    addr |= (uint64_t) pdpt_e << 30;
-    addr |= (uint64_t) pd_e << 21;
-    if (small_page)
-        addr |= (uint64_t) pt_e << 12;
-    addr |= offset;
-
-    return addr;
-}
-
-uint64_t pdpt_va(uint16_t pml4_offset) {
-    return get_va(PML4_RECURSE_ENTRY,
-                  PML4_RECURSE_ENTRY,
-                  PML4_RECURSE_ENTRY,
-                  pml4_offset, 0);
-}
-
-uint64_t pd_va(uint16_t pml4_offset, uint16_t pdpt_offset) {
-    return get_va(PML4_RECURSE_ENTRY,
-                  PML4_RECURSE_ENTRY,
-                  pml4_offset,
-                  pdpt_offset, 0);
-}
-
-uint64_t pt_va(uint16_t pml4_offset, uint16_t pdpt_offset, uint16_t pd_offset) {
-    return get_va(PML4_RECURSE_ENTRY,
-                  pml4_offset,
-                  pdpt_offset,
-                  pd_offset, 0);
-}
-
 void kvminit(struct multiboot_memory_map *mmap) {
     kernel_pml4 = (pml4e_t *) &pml4;
 
@@ -110,8 +72,9 @@ void kvminit(struct multiboot_memory_map *mmap) {
         physical_mapping[i] = entry;
     }
 
-    walk(kernel_pml4, (void *)&nx_flag_supported, false);
     init_phys_allocator(&ram_available);
+    // Remove identity mapping
+    kernel_pml4[0].present = false;
 }
 
 uint64_t vmflag_to_x86flag(uint64_t flag) {

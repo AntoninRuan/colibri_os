@@ -32,13 +32,13 @@ void pre_main(unsigned long magic, unsigned long addr) {
 
     kvminit(memory_map);
 
-    terminal_initialize(&framebuffer->fb);
+    terminal_initialize((void *)&framebuffer->fb + PHYSICAL_OFFSET);
 
     if (acpi_old)
-        load_rsdp((struct rsdp *) &acpi_old->rsdp);
+        load_rsdp((void *) &acpi_old->rsdp + PHYSICAL_OFFSET);
 
     if (acpi_new)
-        load_xsdp((struct xsdp *) &acpi_new->rsdp);
+        load_xsdp((void *) &acpi_new->rsdp + PHYSICAL_OFFSET);
 
     load_idt();                 // Setup interrupts
     enable_lapic();

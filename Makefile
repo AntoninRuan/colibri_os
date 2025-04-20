@@ -78,7 +78,7 @@ $(BOOTDIR)/$(OS_NAME).kernel: $(KER_OBJS) $(KER_ARCHDIR)/linker.ld $(LIBDIR)/lib
 
 $(BUILD)%.o: %.c Makefile kernel/make.config
 	@mkdir -p $(@D)
-	$(CC) -MD -c $< -o $@ $(KER_CFLAGS) -static $(CODE_MODEL)
+	$(CC) -MD -c $< -o $@ $(KER_CFLAGS) -D__arch_$(HOSTARCH_QEMU) -static $(CODE_MODEL)
 
 $(BUILD)%.o: %.S Makefile kernel/make.config
 	@mkdir -p $(@D)

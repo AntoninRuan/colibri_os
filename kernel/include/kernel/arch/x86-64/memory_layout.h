@@ -1,11 +1,15 @@
-#ifndef MEMORY_LAYOUT_H
-#define MEMORY_LAYOUT_H
+#ifndef MEMORY_LAYOUT_x86_64_H
+#define MEMORY_LAYOUT_x86_64_H
 
 #include <stdint.h>
 
-#define SMALL_PAGE_SIZE  0x1000     // 4K
-#define MEDIUM_PAGE_SIZE 0x200000   // 2M = 4K * 512
-#define BIG_PAGE_SIZE    0x40000000 // 1G = 2M * 512
+#define SMALL_PAGE_SIZE  0x1000          // 4K
+#define MEDIUM_PAGE_SIZE 0x200000        // 2M = 4K * 512
+#define BIG_PAGE_SIZE    0x40000000      // 1G = 2M * 512
+#define PAGE_SIZE SMALL_PAGE_SIZE        // Default page size
+
+#define PAGE_START(addr, size) ((uint64_t) (addr) - ((uint64_t)(addr) % (uint64_t) size))
+#define PAGE_END(addr, size) (PAGE_START(addr, size) + size - 1)
 
 // Only works for symbols in the higher half kernel
 #define PHYSICAL_ADDRESS(symbol) ((uint64_t) &symbol - (uint64_t) &_kernel_virtual_offset)
@@ -19,15 +23,50 @@
 #define VA2PD_INDEX(va)    VA2INDEX(va, 1)
 #define VA2PT_INDEX(va)    VA2INDEX(va, 0)
 
-#define PAGE_START(addr, size) ((uint64_t) (addr) - ((uint64_t)(addr) % (uint64_t) size))
-#define PAGE_END(addr, size) (PAGE_START(addr, size) + size - 1)
-
 #define KERNEL_P3_HH 511
 #define KERNEL_MMIO 511
 #define PML4_RECURSE_ENTRY 510
 
 extern uint8_t _kernel_virtual_offset;
 extern uint8_t _kernel_virtual_end;
+
+static inline uint64_t get_va(uint16_t pml4_e, uint16_t pdpt_e, uint16_t pd_e, uint16_t pt_e, uint32_t offset) {
+    uint64_t addr = 0;
+
+    bool small_page = (bool) (pt_e < 512);
+    if (pml4_e & 0x100)
+        addr |= 0xFFFFL << 48;
+
+    addr |= (uint64_t) pml4_e << 39;
+    addr |= (uint64_t) pdpt_e << 30;
+    addr |= (uint64_t) pd_e << 21;
+    if (small_page)
+        addr |= (uint64_t) pt_e << 12;
+    addr |= offset;
+
+    return addr;
+}
+
+static inline uint64_t pdpt_va(uint16_t pml4_offset) {
+    return get_va(PML4_RECURSE_ENTRY,
+                  PML4_RECURSE_ENTRY,
+                  PML4_RECURSE_ENTRY,
+                  pml4_offset, 0);
+}
+
+static inline uint64_t pd_va(uint16_t pml4_offset, uint16_t pdpt_offset) {
+    return get_va(PML4_RECURSE_ENTRY,
+                  PML4_RECURSE_ENTRY,
+                  pml4_offset,
+                  pdpt_offset, 0);
+}
+
+static inline uint64_t pt_va(uint16_t pml4_offset, uint16_t pdpt_offset, uint16_t pd_offset) {
+    return get_va(PML4_RECURSE_ENTRY,
+                  pml4_offset,
+                  pdpt_offset,
+                  pd_offset, 0);
+}
 
 typedef union pml4e_t {
     struct {
