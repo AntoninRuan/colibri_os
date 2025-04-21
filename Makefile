@@ -24,7 +24,7 @@ clean:
 
 CPUS ?= 1
 
-QEMU_FLAGS := -cpu max -m 256M -no-reboot -smp $(CPUS) -cdrom $(OS_NAME).iso
+QEMU_FLAGS := -cpu max -machine q35 -m 256M -no-reboot -smp $(CPUS) -cdrom $(OS_NAME).iso
 
 .gdbinit: Makefile
 	echo -e 'target remote localhost:1234\nfile $(BOOTDIR)/$(OS_NAME).kernel\n' > .gdbinit

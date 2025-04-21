@@ -64,7 +64,6 @@ void kvminit(struct multiboot_memory_map *mmap) {
     ram_available.size = phys_memory_end - ram_available.start + 1;
 
     // Map ram area for easy access in allocators
-    // TODO update to map only ram_available rather than 512GB
     for (int i = 0; i < 512; i ++) {
         pdpte_t entry = {0};
         entry.raw = (uint64_t) BIG_PAGE_SIZE * i;

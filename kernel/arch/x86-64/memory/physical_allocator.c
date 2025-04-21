@@ -15,7 +15,7 @@ typedef struct page_lst page_lst;
 uint64_t base;
 char *alloc;
 uint64_t alloc_size;
-page_lst free = {0};
+page_lst free_lst = {0};
 
 void lst_init(page_lst *lst) {
     lst->next = lst;
@@ -31,6 +31,16 @@ void lst_push(page_lst *lst, void* p) {
 
     lst->next->prev = n;
     lst->next = n;
+}
+
+void lst_push_end(page_lst *lst, void *p) {
+    page_lst *n = (page_lst *) (p + PHYSICAL_OFFSET);
+
+    n->prev = lst->prev;
+    n->next = lst;
+
+    lst->prev->next = n;
+    lst->prev = n;
 }
 
 void* lst_pop(page_lst *lst) {
@@ -70,23 +80,25 @@ void bit_clear(uint64_t index) {
 }
 
 void init_phys_allocator(memory_area_t *ram_available) {
-    lst_init(&free);
+    lst_init(&free_lst);
     base = PAGE_END(ram_available->start, PAGE_SIZE) + 1;
     uint64_t page_count = (ram_available->size / PAGE_SIZE);
     if (page_count == 0) return;
 
-    alloc = (char *) base;
+    alloc = (char *) (base + PHYSICAL_OFFSET);
     alloc_size = ((page_count - 1) / 8) + 1;
     memset(alloc, 0, alloc_size);
 
-    uint64_t index = page_index(base + alloc_size) + 1;
+    uint64_t index = page_index(base + alloc_size - 1) + 1;
     uint64_t i = 0;
     for (; i < index; i ++) {
         bit_set(i);
     }
 
+    void* cur_addr = (void *)(base + i * PAGE_SIZE);
     for (; i < page_count; i ++) {
-        lst_push(&free, (void *)(base + i * PAGE_SIZE));
+        lst_push_end(&free_lst, cur_addr);
+        cur_addr += PAGE_SIZE;
     }
 
     for(; i < alloc_size * 8; i ++) {
@@ -97,8 +109,8 @@ void init_phys_allocator(memory_area_t *ram_available) {
 // Always allocate 4 kB pages
 // Return the physical address of the page start
 void *kalloc() {
-    if (lst_empty(&free)) return 0;
-    void* page = lst_pop(&free);
+    if (lst_empty(&free_lst)) return 0;
+    void* page = lst_pop(&free_lst);
     bit_set(page_index((uint64_t) page));
     return page;
 }
@@ -110,6 +122,6 @@ void kfree(void *page) {
     // Page is already free
     if(!bit_isset(index)) return;
 
-    lst_push(&free, (void *) addr);
+    lst_push(&free_lst, (void *) addr);
     bit_clear(index);
 }
