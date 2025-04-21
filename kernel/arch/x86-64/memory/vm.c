@@ -2,13 +2,16 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <kernel/kernel.h>
 #include <kernel/multiboot2.h>
 #include <kernel/x86-64.h>
+#include <kernel/memory/vm.h>
+#include <kernel/memory/vmm.h>
+#include <kernel/memory/physical_allocator.h>
+
 #include <kernel/arch/x86-64/memory_layout.h>
-#include <kernel/arch/x86-64/vm.h>
-#include <kernel/arch/x86-64/physical_allocator.h>
 
 alignas(4096) pdpte_t physical_mapping[512] = {0}; // Goes to pml4[509]
 
@@ -73,14 +76,16 @@ void kvminit(struct multiboot_memory_map *mmap) {
     }
 
     init_phys_allocator(&ram_available);
+    vmm_init(&kernel_vmm, kernel_pml4, 0, 0x800000000000, false);
+
     // Remove identity mapping
     kernel_pml4[0].present = false;
 }
 
 uint64_t vmflag_to_x86flag(uint64_t flag) {
     uint64_t result = 0;
-    if (nx_flag_supported) {
-        result |= (flag & MEMORY_FLAG_EXEC) << 61;
+    if (nx_flag_supported && !(flag & MEMORY_FLAG_EXEC)) {
+        result |= 1L << 63;
     }
     result |= (flag & (MEMORY_FLAG_WRITE | MEMORY_FLAG_USER)) << 1;
     return result;
@@ -112,6 +117,7 @@ void* walk(pml4e_t *pagetable, void *va, bool alloc) {
             entry->writable = true;
             entry->user_page = true;
             current_pt = (void *)(new_pt + PHYSICAL_OFFSET);
+            memset(current_pt, 0, PAGE_SIZE);
         }
     }
     return &current_pt[VA2INDEX(addr, 0)];
@@ -138,10 +144,67 @@ void freewalk(void* pagetable, uint8_t level) {
     }
 }
 
+// Map virtual address va in pagetable to pa up to va + sz
+// Address are rounded to be page aligned
+// Return 0 on success, -1 on error
 int mappages(pml4e_t *pagetable, void *va, uint64_t sz, void *pa,
-             uint8_t flags) {}
+             uint8_t flags) {
+    void *current = (void *) PAGE_START(va, PAGE_SIZE);
+    void *current_pa = (void *) PAGE_START(pa, PAGE_SIZE);
+    void *end = (void *) PAGE_END(va + sz - 1, PAGE_SIZE);
+    uint64_t x86_flags = vmflag_to_x86flag(flags);
 
+    // TODO detection in case (va + sz) overflows or is a non canonical address
+    while (current < end) {
+        pte_t *descriptor = (pte_t *) walk(pagetable, current, true);
+        if (descriptor == 0 || descriptor->present) {
+            unmappages(pagetable, va, current - va, false);
+            return -1;
+        }
 
-void* map_mmio(uint64_t physical, size_t size, bool writable) {
-    return (void *) (physical + PHYSICAL_OFFSET);
+        descriptor->raw = (uint64_t) current_pa;
+        descriptor->raw |= x86_flags;
+        descriptor->present = true;
+        current += PAGE_SIZE;
+        current_pa += PAGE_SIZE;
+    }
+
+    return 0;
+}
+
+// Unmap all pages starting from va up to PAGE_END(va+sz)
+// Eventually free the physical page if free is true
+// Return 0 on success, -1 on error
+int unmappages(pml4e_t *pagetable, void *va, uint64_t sz, bool free) {
+    void *current = (void *) PAGE_START(va, SMALL_PAGE_SIZE);
+    void *end = (void *) PAGE_END(va + sz - 1, SMALL_PAGE_SIZE);
+
+    for (; current < end; current += PAGE_SIZE) {
+        pte_t *descriptor = walk(pagetable, current, false);
+        if (descriptor == 0) continue;
+
+        if (free) {
+            kfree((void *) (descriptor->phys_addr << 12));
+        }
+
+        descriptor->present = false;
+    }
+
+    return 0;
+}
+
+void* map_mmio(vmm_info_t *vmm, uint64_t physical, size_t size, bool writable) {
+    if (vmm == NULL)
+        vmm = &kernel_vmm;
+
+    uint8_t flag = 0;
+    if (writable) flag |= MEMORY_FLAG_WRITE;
+    if (vmm->user_vmm) flag |= MEMORY_FLAG_USER;
+    memory_area_t *area = vmm_alloc(vmm, size, flag);
+    int result = mappages(vmm->root_pagetable, (void *)area->start, area->size,
+                          (void *)physical, area->flags);
+    if (result)
+        return NULL;
+
+    return (void *)area->start;
 }

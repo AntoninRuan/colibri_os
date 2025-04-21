@@ -1,15 +1,15 @@
 #include <stdio.h>
 
+#include <kernel/x86-64.h>
 #include <kernel/acpi.h>
 #include <kernel/keyboard.h>
+#include <kernel/memory/vm.h>
 #include <kernel/multiboot2.h>
 #include <kernel/tty.h>
-#include <kernel/x86-64.h>
 
 #include <kernel/arch/x86-64/apic.h>
 #include <kernel/arch/x86-64/interrupt.h>
 #include <kernel/arch/x86-64/ioapic.h>
-#include <kernel/arch/x86-64/vm.h>
 
 extern uint8_t vector_handler_0x21;
 
@@ -52,7 +52,7 @@ void pre_main(unsigned long magic, unsigned long addr) {
         );
 
     set_irq(IRQ_KEYBOARD, IRQ_VECTOR_KEYBOARD, 0, false);
-    asm("sti");
 
+    asm("sti");
     return;
 }

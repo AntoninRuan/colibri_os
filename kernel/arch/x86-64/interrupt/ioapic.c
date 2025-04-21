@@ -1,9 +1,10 @@
-#include <kernel/acpi.h>
 #include <stddef.h>
 #include <stdint.h>
 
+#include <kernel/acpi.h>
+#include <kernel/memory/vm.h>
+
 #include <kernel/arch/x86-64/ioapic.h>
-#include <kernel/arch/x86-64/vm.h>
 
 void *io_apic_base_addr = 0;
 
@@ -48,13 +49,13 @@ int read_madt() {
     struct ic_headers *header;
     for (header = (struct ic_headers *) madt->interrupt_controllers;
          ((uint64_t) header) - ((uint64_t) madt) < madt->header.length;
-         header = (struct ic_headers *) ((uint8_t *)header + header->length)) {
+         header = (struct ic_headers *) ((void *)header + header->length)) {
 
         switch(header->type) {
             case IC_TYPE_IO_APIC:
                 struct ic_io_apic *ioapic = (struct ic_io_apic *) header;
                 if (io_apic_base_addr == 0)
-                    io_apic_base_addr = map_mmio(ioapic->address, 0x20, true);
+                    io_apic_base_addr = map_mmio(NULL, ioapic->address, 0x20, true);
                 break;
 
             default:

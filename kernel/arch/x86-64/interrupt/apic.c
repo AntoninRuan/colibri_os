@@ -5,11 +5,10 @@
 
 #include <kernel/x86-64.h>
 #include <kernel/acpi.h>
+#include <kernel/memory/vm.h>
 
 #include <kernel/arch/x86-64/apic.h>
 #include <kernel/arch/x86-64/interrupt.h>
-#include <kernel/arch/x86-64/vm.h>
-
 
 void *lapic_base_address = 0;
 bool support_xapic2 = false;
@@ -90,7 +89,7 @@ int enable_lapic() {
 
     if(!support_xapic2) {
         // 0x400 is the size of all lapic registers
-        lapic_base_address = map_mmio(apic_base & 0xFFFFF000, 0x400, true);
+        lapic_base_address = map_mmio(NULL, apic_base & 0xFFFFF000, 0x400, true);
     }
 
     uint32_t spurious_vector = 0xFF | 0x100;

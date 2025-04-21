@@ -145,16 +145,5 @@ typedef union pte_t {
     uint64_t raw;
 } pte_t;
 
-typedef struct memory_area_t memory_area_t;
-struct memory_area_t {
-    uint64_t start;
-    uint64_t size;
-    uint8_t flags;
-    memory_area_t *next;
-};
 
-#define MEMORY_FLAG_WRITE 1
-#define MEMORY_FLAG_USER  (1 << 1)
-#define MEMORY_FLAG_EXEC  (1 << 2)
-
-#endif // MEMORY_LAYOUT_H
+#endif // MEMORY_LAYOUT_x86_64_H

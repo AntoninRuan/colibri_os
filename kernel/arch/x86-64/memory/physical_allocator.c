@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include <kernel/kernel.h>
-#include <kernel/arch/x86-64/physical_allocator.h>
+#include <kernel/memory/physical_allocator.h>
 #include <kernel/arch/x86-64/memory_layout.h>
 
 struct page_lst {
@@ -47,13 +47,13 @@ void* lst_pop(page_lst *lst) {
 
 // Return page index of a given physical address
 uint64_t page_index(uint64_t addr) {
-    uint64_t pstart = PAGE_START(addr, SMALL_PAGE_SIZE);
+    uint64_t pstart = PAGE_START(addr, PAGE_SIZE);
     uint64_t offset = pstart - base;
-    return (uint64_t)(offset / SMALL_PAGE_SIZE);
+    return (uint64_t)(offset / PAGE_SIZE);
 }
 
 uint64_t addr(uint64_t index) {
-    return base + index * SMALL_PAGE_SIZE;
+    return base + index * PAGE_SIZE;
 }
 
 bool bit_isset(uint64_t index) {
@@ -71,8 +71,8 @@ void bit_clear(uint64_t index) {
 
 void init_phys_allocator(memory_area_t *ram_available) {
     lst_init(&free);
-    base = PAGE_END(ram_available->start, SMALL_PAGE_SIZE) + 1;
-    uint64_t page_count = (ram_available->size / SMALL_PAGE_SIZE);
+    base = PAGE_END(ram_available->start, PAGE_SIZE) + 1;
+    uint64_t page_count = (ram_available->size / PAGE_SIZE);
     if (page_count == 0) return;
 
     alloc = (char *) base;
@@ -86,7 +86,7 @@ void init_phys_allocator(memory_area_t *ram_available) {
     }
 
     for (; i < page_count; i ++) {
-        lst_push(&free, (void *)(base + i * SMALL_PAGE_SIZE));
+        lst_push(&free, (void *)(base + i * PAGE_SIZE));
     }
 
     for(; i < alloc_size * 8; i ++) {
@@ -104,7 +104,7 @@ void *kalloc() {
 }
 
 void kfree(void *page) {
-    uint64_t addr = PAGE_START((uint64_t) page, SMALL_PAGE_SIZE);
+    uint64_t addr = PAGE_START((uint64_t) page, PAGE_SIZE);
 
     uint64_t index = page_index(addr);
     // Page is already free
