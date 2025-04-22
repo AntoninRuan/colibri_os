@@ -16,6 +16,7 @@
 ### Terminal display
 
 - [ ] Make line goes up one row each rather than going back to the top
+- [ ] Support deletion of newline
 
 ### File system
 
@@ -32,19 +33,21 @@
 
 - [x] Setup an IDT
 - [x] Setup APIC
-- [ ] Setup IO APIC
+- [x] Setup IO APIC
 
 ## Memory
 
 - [x] Setup a GDT
 - [x] Setup paging
-- [ ] Add page allocator
+- [x] Add page allocator
+- [x] Virtual Memory Manager
 
 ## CPU Extensions
 
 ### x86-64
 
 - [x] Add support for x86_64
+- [ ] Support multiprocessor
 
 #### SSE
 
