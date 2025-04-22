@@ -9,7 +9,5 @@ void panic(char *msg) {
 }
 
 void main(void) {
-    // printf("Hello world!");
-
     while(1);
 }

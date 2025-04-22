@@ -3,10 +3,12 @@
 #include <kernel/x86-64.h>
 #include <kernel/acpi.h>
 #include <kernel/keyboard.h>
+#include <kernel/log.h>
 #include <kernel/memory/vm.h>
 #include <kernel/multiboot2.h>
 #include <kernel/tty.h>
 
+#include <kernel/debug/qemu.h>
 #include <kernel/arch/x86-64/apic.h>
 #include <kernel/arch/x86-64/interrupt.h>
 #include <kernel/arch/x86-64/ioapic.h>
@@ -14,6 +16,7 @@
 extern uint8_t vector_handler_0x21;
 
 void pre_main(unsigned long magic, unsigned long addr) {
+    init_qemu_serial();
     struct multiboot_memory_map *memory_map = NULL;
     struct multiboot_framebuffer *framebuffer = NULL;
     struct multiboot_acpi_old *acpi_old = NULL;
@@ -33,6 +36,8 @@ void pre_main(unsigned long magic, unsigned long addr) {
     kvminit(memory_map);
 
     terminal_initialize((void *)&framebuffer->fb + PHYSICAL_OFFSET);
+    enable_tty_log();
+    log(DEBUG, "TTY log enable");
 
     if (acpi_old)
         load_rsdp((void *) &acpi_old->rsdp + PHYSICAL_OFFSET);

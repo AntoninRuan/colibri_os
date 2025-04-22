@@ -15,7 +15,7 @@
 #define GDT_ENTRY_USER_DATA   0x20
 
 #define DIVIDE_BY_ZERO         0
-#define DEBUG                  1
+#define DEBUG_INTERRUPT        1
 #define NON_MASKABLE_INTERRUPT 2
 #define BREAKPOINT             3
 #define OVERFLOW               4

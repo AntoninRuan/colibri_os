@@ -11,6 +11,7 @@ extern "C" {
 #endif
 
 int printf(const char* __restrict, ...);
+int sprintf(char* __restrict, const char* __restrict, ...);
 int putchar(uint8_t);
 
 #ifdef __cplusplus

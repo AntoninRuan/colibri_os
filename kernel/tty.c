@@ -50,6 +50,9 @@ int terminal_clear() {
 
 // TODO support other bpp than 32
 void terminal_putchar(uint8_t c) {
+    if (column == TERMINAL_WIDTH)
+        terminal_return();
+
     uint64_t row_offset = (row * (font->height + 1) * display.pitch);
     uint64_t column_offset = (column * (font->width + 1) * (display.bpp / 8));
 
@@ -75,9 +78,10 @@ void terminal_putchar(uint8_t c) {
         row_offset += display.pitch;
     }
 
-    if (++ column == TERMINAL_WIDTH) {
-        terminal_return();
-    }
+    column ++;
+    // if (++ column == TERMINAL_WIDTH) {
+    //     terminal_return();
+    // }
 }
 
 void terminal_return() {
@@ -89,10 +93,14 @@ void terminal_return() {
 }
 
 void terminal_backspace() {
-    if (column != 0)
+    if (column != 0) {
         column --;
-    terminal_putchar(' ');
-    column --;
+        terminal_putchar(' ');
+        column --;
+    } else if (row != 0) {
+        column = TERMINAL_WIDTH;
+        row --;
+    }
 }
 
 void terminal_write(uint8_t data) {

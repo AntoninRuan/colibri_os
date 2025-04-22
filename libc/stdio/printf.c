@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static bool print(const char* data, size_t length) {
+static bool print(char *buf, const char* data, size_t length) {
     const unsigned char* bytes = (const unsigned char*) data;
     for (size_t i= 0; i < length; i++) {
         if (putchar(bytes[i]) == EOF) return false;
@@ -13,85 +13,103 @@ static bool print(const char* data, size_t length) {
     return true;
 }
 
-int printf(const char* restrict format, ...) {
-    va_list parameters;
-    va_start(parameters, format);
-
+static inline int format(bool (*dump)(char* buf, const char *, size_t), char* restrict dest, const char* restrict formats, va_list parameters) {
     int written = 0;
 
-    while (*format != '\0') {
+    while(*formats != '\0') {
         size_t maxrem = INT_MAX - written;
-        if (format[0] != '%' || format[1] == '%') {
-            if (format[0] == '%') format ++;
+        if (formats[0] != '%' || formats[1] == '%') {
+            if (formats[0] == '%') formats ++;
             size_t amount = 1;
-            while (format[amount] && format[amount] != '%') amount ++;
+            while (formats[amount] && formats[amount] != '%') amount ++;
             if (maxrem < amount) {
                 // TODO: Set errno to EOVERFLOW
                 return -1;
             }
-            if (!print(format, amount)) return -1;
-            format += amount;
+            if (!dump(dest + written, formats, amount)) return -1;
+            formats += amount;
             written += amount;
             continue;
         }
 
-        const char* format_begun_at = format++;
+        const char* format_begun_at = formats++;
         size_t len;
         bool upper_case;
-        switch (*format) {
-        case 'c':
-            format++;
-            char c = (char) va_arg(parameters, int);
-            if (!maxrem) {
-                // TODO: Set errno to EOVERFLOW
-                return -1;
-            }
-            if (!print(&c, sizeof(c))) return -1;
-            written ++;
-            break;
+        switch (*formats) {
+            case 'c':
+                formats ++;
+                char c = (char) va_arg(parameters, int);
+                if (!maxrem) {
+                    // TODO: Set errno to EOVERFLOW
+                    return -1;
+                }
+                if(!dump(dest + written, &c, sizeof(c))) return -1;
+                written ++;
+                break;
 
-        case 's':
-            format ++;
-            const char* str = va_arg(parameters, const char*);
-            len = strlen(str);
-            if (maxrem < len) {
-                // TODO: Set errno to EOVERFLOW
-                return -1;
-            }
-            if (!print(str, len)) return -1;
-            written += len;
-            break;
+            case 's':
+                formats ++;
+                const char* str = va_arg(parameters, const char*);
+                len = strlen(str);
+                if (maxrem < len) {
+                    // TODO: Set errno to EOVERFLOW
+                    return -1;
+                }
+                if (!dump(dest + written, str, len)) return -1;
+                written += len;
+                break;
 
-        case 'd':
-        case 'i':
-        case 'o':
-        case 'x':
-        case 'X':
-            int base = 16;
-            if (*format == 'd' || *format == 'i') base = 10;
-            else if (*format == 'o') base = 8;
-            upper_case = *format == 'X';
-            format++;
-            unsigned int i = (unsigned int) va_arg(parameters, int);
-            char buf[13] = {0}; // 12 is the maximum of digits in octal +1 for NULL terminated
-            itoa(buf, base, i, upper_case);
-            if (!print(buf, strlen(buf))) return -1;
-            break;
+            case 'd':
+            case 'i':
+            case 'o':
+            case 'x':
+            case 'X':
+                int base = 16;
+                if (*formats == 'd' || *formats == 'i') base = 10;
+                else if (*formats == 'o') base = 8;
+                upper_case = *formats == 'X';
+                formats ++;
+                unsigned int i = (unsigned int) va_arg(parameters, int);
+                char buf[13] = {0}; // 12 is the maximum of digits in octal +1 for NULL terminated
+                itoa(buf, base, i, upper_case);
+                size_t len = strlen(buf);
+                if (!dump(dest + written, buf, len)) return -1;
+                written += len;
+                break;
 
-        default:
-            format = format_begun_at;
-            len = strlen(format);
-            if (maxrem < len) {
-                // TODO: Set errno to EOVERFLOW
-                return -1;
-            }
-            if (!print(format, len)) return -1;
-            written += len;
-            format += len;
-            break;
+            default:
+                formats = format_begun_at;
+                len = strlen(formats);
+                if (maxrem < len) {
+                    // TODO: Set errno to EOVERFLOW
+                    return -1;
+                }
+                if (!dump(dest + written, formats, len)) return -1;
+                written += len;
+                formats += len;
+                break;
         }
     }
-
-    va_end(parameters);
     return written;
+}
+
+int printf(const char* restrict formats, ...) {
+    va_list parameters;
+    va_start(parameters, formats);
+    int rc = format(&print, NULL, formats, parameters);
+    va_end(parameters);
+    return rc;
+}
+
+static bool write_to_buf(char* restrict dst, const char* restrict src, size_t len) {
+    memcpy(dst, src, len);
+    return true;
+}
+
+int sprintf(char* restrict str, const char* restrict formats, ...) {
+    va_list parameters;
+    va_start(parameters, formats);
+    int rc = format(&write_to_buf, str, formats, parameters);
+    va_end(parameters);
+    return rc;
 }

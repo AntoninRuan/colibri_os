@@ -42,12 +42,16 @@
 - [x] Add page allocator
 - [x] Virtual Memory Manager
 
+## SMP
+
+- [ ] Detection and init of other cores
+- [ ] Synchronisation (spinlock, semaphore, ...)
+
 ## CPU Extensions
 
 ### x86-64
 
 - [x] Add support for x86_64
-- [ ] Support multiprocessor
 
 #### SSE
 
@@ -58,4 +62,5 @@
 
 - [x] Support multiboot2
 - [x] Replace gcc with clang for easier cross compiling
-- [ ] Basic logging (maybe over serial port)
+- [x] Basic logging (maybe over serial port)
+- [ ] Setup timers
