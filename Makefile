@@ -40,7 +40,8 @@ $(OS_NAME).iso: $(BOOTDIR)/grub/grub.cfg $(BOOTDIR)/$(OS_NAME).kernel
 
 $(BOOTDIR)/grub/grub.cfg: Makefile
 	@mkdir -p $(BOOTDIR)/grub
-	echo -e 'menuentry "$(OS_NAME)" {\n\tmultiboot2 /boot/$(OS_NAME).kernel\n}\n' > $(SYSROOT)/boot/grub/grub.cfg
+	echo -e 'set timeout=0' > $(SYSROOT)/boot/grub/grub.cfg
+	echo -e 'menuentry "$(OS_NAME)" {\n\tmultiboot2 /boot/$(OS_NAME).kernel\n}\n' >> $(SYSROOT)/boot/grub/grub.cfg
 
 SOURCE_FILES != find libc/ kernel/ -name "*.[c|S|h]"
 

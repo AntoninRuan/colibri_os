@@ -6,18 +6,19 @@
 
 #include <kernel/arch/x86-64/ioapic.h>
 
-void *io_apic_base_addr = 0;
+volatile uint32_t *io_apic_reg_sel = 0;
+volatile uint32_t *io_apic_win = 0;
 
 uint32_t read_ioapic_register(uint8_t reg) {
-    *(uint32_t *) io_apic_base_addr = (uint32_t) reg;
-    return *(uint32_t *)(io_apic_base_addr + 0x10);
+    *io_apic_reg_sel = (uint32_t) reg;
+    return *io_apic_win;
 }
 
 void write_ioapic_register(uint8_t reg, uint32_t value) {
-    if (io_apic_base_addr == 0) return;
+    if (io_apic_reg_sel == 0) return;
 
-    *(uint32_t *) io_apic_base_addr = (uint32_t) reg;
-    *(uint32_t *) (io_apic_base_addr + 0x10) = value;
+    *io_apic_reg_sel = (uint32_t) reg;
+    *io_apic_win = value;
 }
 
 void write_ioapic_redirect(uint8_t index, io_apic_redirect_entry_t entry) {
@@ -54,8 +55,10 @@ int read_madt() {
         switch(header->type) {
             case IC_TYPE_IO_APIC:
                 struct ic_io_apic *ioapic = (struct ic_io_apic *) header;
-                if (io_apic_base_addr == 0)
-                    io_apic_base_addr = map_mmio(NULL, ioapic->address, 0x20, true);
+                if (io_apic_reg_sel == 0) {
+                    io_apic_reg_sel = map_mmio(NULL, ioapic->address, 0x20, true);
+                    io_apic_win = (uint32_t *)((uintptr_t)io_apic_reg_sel + 0x10);
+                }
                 break;
 
             default:

@@ -95,10 +95,8 @@ void init_phys_allocator(memory_area_t *ram_available) {
         bit_set(i);
     }
 
-    void* cur_addr = (void *)(base + i * PAGE_SIZE);
     for (; i < page_count; i ++) {
-        lst_push_end(&free_lst, cur_addr);
-        cur_addr += PAGE_SIZE;
+        lst_push_end(&free_lst, (void *)(base + i * PAGE_SIZE));
     }
 
     for(; i < alloc_size * 8; i ++) {

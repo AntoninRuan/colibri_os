@@ -38,6 +38,7 @@ void kvminit(struct multiboot_memory_map *mmap) {
     physical_entry.raw = (uint64_t)(PHYSICAL_ADDRESS(physical_mapping));
     physical_entry.present = true;
     physical_entry.writable = true;
+    physical_entry.xd = nx_flag_supported;
     ((pml4e_t *)(pdpt_va(PML4_RECURSE_ENTRY)))[509] = physical_entry;
 
     // Determine RAM area

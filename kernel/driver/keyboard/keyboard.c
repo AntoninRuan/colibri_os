@@ -113,7 +113,7 @@ void init_keyboard() {
         outb(KEYBOARD_PORT, 0);
 
         sc = inb(KEYBOARD_PORT);
-    } while (sc == 0xFE || retry++ < MAX_RETRY);
+    } while (sc == 0xFE && retry++ < MAX_RETRY);
 
     scancode_set = inb(KEYBOARD_PORT);
 

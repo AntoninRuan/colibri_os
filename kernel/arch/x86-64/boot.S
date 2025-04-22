@@ -34,7 +34,7 @@ stack_top:
     .type _start @function
     .code32
 _start:
-    // Still in Procted Mode (32 bit)
+    // Still in Protected Mode (32 bit)
 
     // Multiboot2 loader must have already disabled paging and interrupts
 
