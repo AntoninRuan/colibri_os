@@ -12,6 +12,7 @@ typedef enum log_level log_level_t;
 
 void enable_tty_log();
 void disable_tty_log();
-void log(log_level_t, char*);
+void log(log_level_t, const char *);
+void logf(log_level_t, const char*, ...);
 
 #endif // LOG_H

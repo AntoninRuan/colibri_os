@@ -5,9 +5,10 @@
 #include <kernel/kernel.h>
 #include <kernel/multiboot2.h>
 #include <kernel/tty.h>
-#include <string.h>
+#include <kernel/log.h>
 
 void load_multiboot_info(uint32_t magic, uint64_t addr, struct multiboot_boot_information *boot_info) {
+    log(INFO, "Loading multiboot info");
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
         panic("load_multiboot_info: multiboot magic does not correspond");
 

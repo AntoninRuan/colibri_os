@@ -37,7 +37,6 @@ void pre_main(unsigned long magic, unsigned long addr) {
 
     terminal_initialize((void *)&framebuffer->fb + PHYSICAL_OFFSET);
     enable_tty_log();
-    log(DEBUG, "TTY log enable");
 
     if (acpi_old)
         load_rsdp((void *) &acpi_old->rsdp + PHYSICAL_OFFSET);

@@ -10,7 +10,7 @@
 #include <kernel/arch/x86-64/apic.h>
 #include <kernel/arch/x86-64/interrupt.h>
 
-void *lapic_base_address = 0;
+volatile void *lapic_base_address = 0;
 bool support_xapic2 = false;
 
 void disable_pic() {
