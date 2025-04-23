@@ -18,6 +18,7 @@ void enable_tty_log() { log_tty = true; }
 void disable_tty_log() { log_tty = false; }
 
 void log(log_level_t level, const char* msg) {
+    if (!(log_qemu || log_tty)) return;
     char prefix[64] = {0};
     sprintf(prefix, "[%s]: ", level_prefix[level]);
     if (log_qemu) {
@@ -32,6 +33,7 @@ void log(log_level_t level, const char* msg) {
 }
 
 void logf(log_level_t level, const char* msg, ...) {
+    if (!(log_qemu || log_tty)) return;
     va_list ap;
     char final[512] = {0};
 

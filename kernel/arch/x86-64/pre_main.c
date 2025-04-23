@@ -36,7 +36,6 @@ void pre_main(unsigned long magic, unsigned long addr) {
     kvminit(memory_map);
 
     terminal_initialize((void *)&framebuffer->fb + PHYSICAL_OFFSET);
-    enable_tty_log();
 
     if (acpi_old)
         load_rsdp((void *) &acpi_old->rsdp + PHYSICAL_OFFSET);

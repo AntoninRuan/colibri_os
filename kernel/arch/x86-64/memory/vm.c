@@ -4,12 +4,13 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <kernel/kernel.h>
-#include <kernel/multiboot2.h>
 #include <kernel/x86-64.h>
+#include <kernel/kernel.h>
+#include <kernel/log.h>
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
 #include <kernel/memory/physical_allocator.h>
+#include <kernel/multiboot2.h>
 
 #include <kernel/arch/x86-64/memory_layout.h>
 
@@ -21,6 +22,7 @@ extern uint8_t pml4;
 pml4e_t *kernel_pml4;
 
 void kvminit(struct multiboot_memory_map *mmap) {
+    log(INFO, "Init virtual and physical memory");
     kernel_pml4 = (pml4e_t *) &pml4;
 
     unsigned int eax, ebx, ecx, edx;

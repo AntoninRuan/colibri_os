@@ -106,10 +106,14 @@ static bool write_to_buf(char* restrict dst, const char* restrict src, size_t le
     return true;
 }
 
+int vsprintf(char* restrict str, const char* restrict formats, va_list ap) {
+    return format(&write_to_buf, str, formats, ap);
+}
+
 int sprintf(char* restrict str, const char* restrict formats, ...) {
     va_list parameters;
     va_start(parameters, formats);
-    int rc = format(&write_to_buf, str, formats, parameters);
+    int rc = vsprintf(str, formats, parameters);
     va_end(parameters);
     return rc;
 }

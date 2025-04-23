@@ -4,10 +4,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <kernel/vga.h>
-#include <kernel/tty.h>
-#include <kernel/pc_font.h>
+#include <kernel/log.h>
 #include <kernel/memory/vm.h>
+#include <kernel/pc_font.h>
+#include <kernel/tty.h>
+#include <kernel/vga.h>
 
 extern uint8_t _binary_font_psfu_start;
 extern uint8_t _binary_font_psfu_end;
@@ -30,6 +31,7 @@ int terminal_initialize(struct framebuffer *fb) {
 
     TERMINAL_HEIGHT = display.height / (font->height + 1);
     TERMINAL_WIDTH = display.width / (font->width + 1);
+    logf(INFO, "Init tty with size %dx%d", TERMINAL_WIDTH, TERMINAL_HEIGHT);
     row = 0;
     column = 0;
 

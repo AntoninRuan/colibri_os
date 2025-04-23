@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include <kernel/kernel.h>
+#include <kernel/log.h>
 #include <kernel/memory/physical_allocator.h>
 #include <kernel/arch/x86-64/memory_layout.h>
 
@@ -80,6 +81,9 @@ void bit_clear(uint64_t index) {
 }
 
 void init_phys_allocator(memory_area_t *ram_available) {
+    logf(INFO, "Init physical allocator at base=0x%X with size 0x%X",
+         ram_available->start,
+         ram_available->size);
     lst_init(&free_lst);
     base = PAGE_END(ram_available->start, PAGE_SIZE) + 1;
     uint64_t page_count = (ram_available->size / PAGE_SIZE);

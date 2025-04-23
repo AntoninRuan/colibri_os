@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <kernel/acpi.h>
+#include <kernel/log.h>
 #include <kernel/memory/memory_layout.h>
 
 struct rsdt *rsdt = 0;
@@ -31,7 +32,10 @@ int load_rsdp(struct rsdp *rsdp) {
 
     if (sum & 0xFF) return 1;
 
+
     rsdt = (struct rsdt *) ((uint64_t)rsdp->rsdt_addr + PHYSICAL_OFFSET);
+
+    logf(INFO, "Loading rsdt at address 0x%X", rsdp->rsdt_addr);
 
     return 0;
 }
@@ -50,6 +54,8 @@ int load_xsdp(struct xsdp *xsdp) {
     if (sum & 0xFF) return 1;
 
     xsdt = (struct xsdt *) ((uint64_t) xsdp->xsdt_address + PHYSICAL_OFFSET);
+
+    logf(INFO, "Loading xsdt at address 0x%X", xsdp->xsdt_address);
 
     return 0;
 }

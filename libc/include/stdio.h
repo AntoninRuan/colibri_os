@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <sys/cdefs.h>
+#include <stdarg.h>
 
 #define EOF (-1)
 
@@ -12,6 +13,7 @@ extern "C" {
 
 int printf(const char* __restrict, ...);
 int sprintf(char* __restrict, const char* __restrict, ...);
+int vsprintf(char* restrict str, const char* restrict formats, va_list ap);
 int putchar(uint8_t);
 
 #ifdef __cplusplus

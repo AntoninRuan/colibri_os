@@ -5,6 +5,7 @@
 
 #include <kernel/x86-64.h>
 #include <kernel/acpi.h>
+#include <kernel/log.h>
 #include <kernel/memory/vm.h>
 
 #include <kernel/arch/x86-64/apic.h>
@@ -99,6 +100,11 @@ int enable_lapic() {
     set_idt_entry(0xFF, (uint64_t) &vector_handler_0xFF,
                   GDT_ENTRY_KERNEL_CODE,
                   FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE));
+
+    if (support_xapic2)
+        logf(INFO, "LAPIC is enabled with xapic2 support");
+    else
+        logf(INFO, "LAPIC is enabled without xapic2 support");
 
     return 0;
 }
