@@ -1,7 +1,9 @@
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #include <kernel/acpi.h>
+#include <kernel/log.h>
 #include <kernel/memory/vm.h>
 
 #include <kernel/arch/x86-64/ioapic.h>
@@ -32,19 +34,25 @@ void write_ioapic_redirect(uint8_t index, io_apic_redirect_entry_t entry) {
     write_ioapic_register(index + 1, high);
 }
 
-void set_irq(uint8_t irq, uint8_t idt_entry, uint32_t flags, bool masked) {
+int set_irq(uint8_t irq, uint8_t idt_entry, uint32_t flags, bool masked) {
     io_apic_redirect_entry_t entry;
-    entry.raw = flags | (idt_entry & 0xFF);
+    entry.raw = read_ioapic_register(0x10 + (irq * 2));
+    if (entry.vector != 0) {
+        logf(ERROR, "IRQ %d is already mapped", irq);
+        return -1;
+    }
 
-    // TODO Override detection
+    entry.raw = (uint64_t) (flags | (idt_entry & 0xFF));
+
     // TODO multiple ioapic handling
 
     entry.masked = masked;
     write_ioapic_redirect(0x10 + (irq * 2), entry);
+    return 0;
 }
 
 int read_madt() {
-    struct madt *madt = (struct madt*) find_table(ACPI_TABLE_APIC);
+    struct madt *madt = (struct madt *)find_table(ACPI_TABLE_APIC);
     if (madt == NULL) return 1;
 
     struct ic_headers *header;
@@ -53,6 +61,9 @@ int read_madt() {
          header = (struct ic_headers *) ((void *)header + header->length)) {
 
         switch(header->type) {
+            case IC_TYPE_LAPIC:
+                ic_lapic_t *lapic = (ic_lapic_t *) header;
+                break;
             case IC_TYPE_IO_APIC:
                 struct ic_io_apic *ioapic = (struct ic_io_apic *) header;
                 if (io_apic_reg_sel == 0) {

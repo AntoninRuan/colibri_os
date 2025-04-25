@@ -26,6 +26,15 @@ struct ic_headers {
     uint8_t length;
 };
 
+struct ic_lapic {
+    struct ic_headers header;
+
+    uint8_t acpi_processor_uid;
+    uint8_t apic_id;
+    uint32_t flags;
+};
+typedef struct ic_lapic ic_lapic_t ;
+
 struct ic_io_apic {
     struct ic_headers header;
 

@@ -68,20 +68,22 @@ struct acpi_sdt_header {
     uint32_t creator_revision;
 };
 
+typedef struct acpi_sdt_header acpi_sdt_header_t;
+
 struct rsdt {
-    struct acpi_sdt_header header;
+    acpi_sdt_header_t header;
     uint32_t sdt_addresses[];
 };
 
 struct xsdt {
-    struct acpi_sdt_header header;
+    acpi_sdt_header_t header;
     uint64_t sdt_addresses[];
 };
 
 int load_rsdp(struct rsdp *);
 int load_xsdp(struct xsdp *);
 
-bool validate_sdt(struct acpi_sdt_header *);
-struct acpi_sdt_header *find_table(char *signature);
+bool validate_sdt(acpi_sdt_header_t *);
+acpi_sdt_header_t *find_table(char *signature);
 
 #endif // ACPI_H

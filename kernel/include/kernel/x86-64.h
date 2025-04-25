@@ -5,6 +5,7 @@
 
 #define IRQ_PIT      0x0
 #define IRQ_KEYBOARD 0x1
+#define IRQ_HPET_TIMER(n) (0x30 + n)
 
 #define IRQ_VECTOR_PIT      0X20
 #define IRQ_VECTOR_KEYBOARD 0X21
@@ -34,6 +35,25 @@
 #define SIMD_ERROR             19
 
 #define IA32_EFER              0xC0000080
+
+// Description of flag in Volume 3 Section 5.7 of Intel IA32 Software developpers manual
+union page_fault_error_code {
+    struct {
+        uint32_t present    :1;
+        uint32_t write      :1;
+        uint32_t user       :1;
+        uint32_t rsvd       :1;
+        uint32_t ifetch     :1;
+        uint32_t pk         :1;
+        uint32_t ss         :1;
+        uint32_t hlat       :1;
+        uint32_t reserved   :7;
+        uint32_t sgx        :1;
+        uint32_t reserved_2 :16;
+    };
+    uint32_t raw;
+};
+typedef union page_fault_error_code pg_error_t;
 
 // Struct use to read the value of register after a pushal
 struct registers_t {

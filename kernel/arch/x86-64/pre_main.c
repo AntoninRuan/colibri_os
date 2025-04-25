@@ -10,6 +10,7 @@
 
 #include <kernel/debug/qemu.h>
 #include <kernel/arch/x86-64/apic.h>
+#include <kernel/arch/x86-64/hpet.h>
 #include <kernel/arch/x86-64/interrupt.h>
 #include <kernel/arch/x86-64/ioapic.h>
 
@@ -46,6 +47,8 @@ void pre_main(unsigned long magic, unsigned long addr) {
     load_idt();                 // Setup interrupts
     enable_lapic();
     read_madt();
+
+    setup_hpet();
 
     // Enable keyboard support
     init_keyboard();

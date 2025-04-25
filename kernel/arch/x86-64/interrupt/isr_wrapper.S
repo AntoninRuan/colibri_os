@@ -113,4 +113,22 @@ vector_handler_\vec_num:
     // IRQs
     vector_no_err 0x21          // Keyboard interrupt
 
+    // HPET timers
+    vector_no_err 0x30
+    vector_no_err 0x31
+    vector_no_err 0x32
+    vector_no_err 0x33
+    vector_no_err 0x34
+    vector_no_err 0x35
+    vector_no_err 0x36
+    vector_no_err 0x37
+    vector_no_err 0x38
+    vector_no_err 0x39
+    vector_no_err 0x3A
+    vector_no_err 0x3B
+    vector_no_err 0x3C
+    vector_no_err 0x3D
+    vector_no_err 0x3E
+    vector_no_err 0x3F
+
     vector_no_err 0xFF          // APIC Spurious vector

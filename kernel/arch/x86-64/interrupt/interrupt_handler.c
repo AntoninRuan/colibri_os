@@ -24,7 +24,11 @@ extern void *interrupt_dispatch(struct interrupt_frame *context) {
         case IRQ_VECTOR_KEYBOARD:
             keystroke_handler();
             break;
-        default:
+		case IRQ_HPET_TIMER(0):
+			log(DEBUG, "PING");
+            break;
+
+		default:
             break;
     }
 
