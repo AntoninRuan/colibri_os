@@ -84,4 +84,4 @@ $(BUILD)%.o: %.c Makefile kernel/make.config
 
 $(BUILD)%.o: %.S Makefile kernel/make.config
 	@mkdir -p $(@D)
-	$(CC) -MD -c $< -o $@ $(KER_CFLAGS) -static $(CODE_MODEL)
+	$(CC) -MD -c $< -o $@ $(KER_CFLAGS) -D__is_asm -static $(CODE_MODEL)
