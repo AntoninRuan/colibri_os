@@ -2,6 +2,7 @@
 #define IOAPIC_H
 
 #include <kernel/acpi.h>
+#include <stdint.h>
 
 #define IC_TYPE_LAPIC                     0
 #define IC_TYPE_IO_APIC                   1
@@ -59,6 +60,6 @@ typedef union io_apic_redirect_entry_t {
 } io_apic_redirect_entry_t;
 
 int read_madt();
-void set_irq(uint8_t irq, uint8_t idt_entry, uint32_t flags, bool masked);
+int set_irq(uint8_t irq, uint8_t idt_entry, uint32_t flags, bool masked);
 
 #endif // IOAPIC_H

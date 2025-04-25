@@ -1,6 +1,5 @@
 #include <stdint.h>
 
-#include <kernel/memory/vmm.h>
 #include <kernel/log.h>
 
 __attribute__((__noreturn__))

@@ -1,4 +1,4 @@
-.macro push_gp_reg
+.macro push_reg
     pushq %rax
     pushq %rcx
     pushq %rdx
@@ -15,9 +15,12 @@
     pushq %r13
     pushq %r14
     pushq %r15
+    movq %cr2, %rax
+    pushq %rax
 .endm
 
-.macro pop_gp_reg
+.macro pop_reg
+    popq %rax
     popq %r15
     popq %r14
     popq %r13
@@ -38,13 +41,13 @@
 
     .text
 isr_wrapper:
-    push_gp_reg
+    push_reg
 
     movq %rsp, %rdi             // Pass stack addr as an args for function call
     call interrupt_dispatch
     mov %rax, %rsp              // Restore %esp to what it was
 
-    pop_gp_reg
+    pop_reg
 
     add $16, %rsp               // remove vector number + error code
 

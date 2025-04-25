@@ -1,11 +1,14 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <kernel/log.h>
 #include <kernel/memory/memory_layout.h>
 #include <kernel/memory/physical_allocator.h>
+#include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
 
 vmm_info_t kernel_vmm = {0};
+vmm_info_t *current_vmm = &kernel_vmm;
 
 void vmm_init(vmm_info_t *vmm, void* pagetable, uintptr_t start, uintptr_t end, bool user) {
     memset(vmm, 0, sizeof(vmm_info_t));
@@ -17,7 +20,24 @@ void vmm_init(vmm_info_t *vmm, void* pagetable, uintptr_t start, uintptr_t end, 
     vmm->vmm_data_end = end;
 }
 
+memory_area_t* get_memory_area(vmm_info_t *vmm, void* va) {
+    if ((uintptr_t) va > vmm->current_addr) return NULL;
+
+    memory_area_t *cur = vmm->first_area;
+    for(;cur; cur = cur->next) {
+        if (cur->start <= (uintptr_t)va &&
+            (uintptr_t)va < cur->start + cur->size) {
+            return cur;
+        }
+    }
+    return NULL;
+}
+
 memory_area_t* vmm_alloc(vmm_info_t *vmm, uint64_t sz, uint8_t flags) {
+    return vmm_alloc_at(0, vmm, sz, flags);
+}
+
+memory_area_t* vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, uint64_t sz, uint8_t flags) {
     uint64_t length = PAGE_END(sz - 1, SMALL_PAGE_SIZE);
     uintptr_t low_bound;
     uintptr_t high_bound = vmm->vmm_data_end;
@@ -28,13 +48,15 @@ memory_area_t* vmm_alloc(vmm_info_t *vmm, uint64_t sz, uint8_t flags) {
     if (cur == NULL)
         low_bound = vmm->vmm_data_start;
     else
-        low_bound = PAGE_END(cur->start + cur->size - 1, PAGE_SIZE) + 1;
+        low_bound = PAGE_END(vmm->current_addr, PAGE_SIZE) + 1;
 
     found = low_bound;
-    if (low_bound + length > high_bound) {
+    if (found < base) found = base;
+    if (found + length > high_bound) {
         // In case the last given address is too high, search for memory avaible in gaps
         cur = vmm->first_area;
         while (cur) {
+            if (cur->start + cur->size - 1 < base) continue;
             if (prev == NULL)
                 low_bound = vmm->vmm_data_start;
             else
@@ -98,7 +120,10 @@ memory_area_t* vmm_alloc(vmm_info_t *vmm, uint64_t sz, uint8_t flags) {
     else {
         vmm->first_area = new;
     }
-    if (prev == vmm->current_area) vmm->current_area = new;
+    if (prev == vmm->current_area) {
+        vmm->current_area = new;
+        vmm->current_addr = new->start + new->size - 1;
+    }
 
     return new;
 }
@@ -129,7 +154,20 @@ int vmm_free(vmm_info_t *vmm, memory_area_t *area) {
     else
         vmm->current_area = area->prev;
 
+    unmappages(vmm->root_pagetable, (void *)area->start, area->size, true);
+
     // TODO add mechanism to free / compact containers
 
+    return 0;
+}
+
+int on_demand_allocation(void *va) {
+    void* page = kalloc();
+    memory_area_t *area = get_memory_area(current_vmm, va);
+    if (area == NULL) {
+        // va is not an allocated address for current vmm
+        return -1;
+    }
+    mappages(current_vmm->root_pagetable, va, PAGE_SIZE, page, area->flags);
     return 0;
 }

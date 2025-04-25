@@ -35,8 +35,9 @@
 
 #define IA32_EFER              0xC0000080
 
-// Struct use to read the value of general purposer register after a pushal
+// Struct use to read the value of register after a pushal
 struct registers_t {
+    uint64_t cr2;
     uint64_t r15;
     uint64_t r14;
     uint64_t r13;
