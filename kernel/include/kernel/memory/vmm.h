@@ -2,6 +2,7 @@
 #define VMM_H
 
 #include <kernel/memory/memory_layout.h>
+#include <kernel/sync.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -43,6 +44,8 @@ struct vmm_info {
     uintptr_t current_addr;
     memory_area_t *first_area;
     memory_area_t *current_area;
+
+    spinlock_t lock;
 };
 
 typedef struct vmm_info vmm_info_t;

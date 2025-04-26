@@ -1,6 +1,7 @@
 #include <kernel/arch/x86-64/memory_layout.h>
 #include <kernel/kernel.h>
 #include <kernel/log.h>
+#include <kernel/sync.h>
 #include <kernel/memory/physical_allocator.h>
 #include <stdint.h>
 #include <string.h>
@@ -16,6 +17,11 @@ uint64_t base;
 char *alloc;
 uint64_t alloc_size;
 page_lst free_lst = {0};
+spinlock_t phys_alloc_lock = {
+    .held = 0,
+    .cpu_id = 0,
+    .name = "Physical Allocator"
+};
 
 void lst_init(page_lst *lst) {
     lst->next = lst;
@@ -105,9 +111,11 @@ void init_phys_allocator(memory_area_t *ram_available) {
 // Always allocate 4 kB pages
 // Return the physical address of the page start
 void *kalloc() {
+    acquire(&phys_alloc_lock);
     if (lst_empty(&free_lst)) return 0;
     void *page = lst_pop(&free_lst);
     bit_set(page_index((uint64_t)page));
+    release(&phys_alloc_lock);
     return page;
 }
 
@@ -116,8 +124,13 @@ void kfree(void *page) {
 
     uint64_t index = page_index(addr);
     // Page is already free
-    if (!bit_isset(index)) return;
 
+
+    if (!bit_isset(index))
+        return;
+
+    acquire(&phys_alloc_lock);
     lst_push(&free_lst, (void *)addr);
     bit_clear(index);
+    release(&phys_alloc_lock);
 }

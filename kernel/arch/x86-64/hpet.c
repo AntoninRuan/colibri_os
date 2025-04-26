@@ -67,11 +67,9 @@ void sleep_polled_hpet(uint64_t femto) {
     uint64_t target = main_counter + cycle;
 
     if (main_counter > target)
-        while (poll_hpet() > target) {
-        }
+        while (poll_hpet() > target);
 
-    while (poll_hpet() < target) {
-    }
+    while (poll_hpet() < target);
     return;
 }
 

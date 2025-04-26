@@ -11,7 +11,7 @@
 #include <kernel/memory/vm.h>
 #include <kernel/multiboot2.h>
 #include <kernel/tty.h>
-#include <kernel/synchronization/spinlock.h>
+#include <kernel/sync.h>
 #include <kernel/x86-64.h>
 
 #include <kernel/arch/x86-64/apic.h>
@@ -23,7 +23,9 @@
 
 extern uint8_t ap_trampoline;
 extern uint8_t vector_handler_0x21;
-// extern volatile void *lapic_base_address;
+spinlock_t core_running_lock = {
+    .name = "Core Running"
+};
 
 cpu_status_t cpu_status = {
     .bsp_id = MAX_CORES + 1,
@@ -35,7 +37,7 @@ void init_ap() {
     // load ap_trampoline at 0x8000 (physical)
     memcpy((void *)(0x8000 + PHYSICAL_OFFSET), &ap_trampoline, 4096);
 
-    acquire(&spinlocks[0]);
+    acquire(&core_running_lock);
     cpu_status.core_running ++;
     for (uint32_t i = 0; i < cpu_status.core_available; i++) {
         // do not start BSP, that's already running this code
@@ -69,7 +71,8 @@ void init_ap() {
         }
     }
 
-    release(&spinlocks[0]);
+    release(&core_running_lock);
+    millidelay(20);
     logf(INFO, "After startup they are %d CPU running", cpu_status.core_running);
 }
 
@@ -88,9 +91,9 @@ void ap_startup(uint32_t apicid) {
     load_idt();
     enable_lapic(apicid);
 
-    acquire(&spinlocks[0]);
+    acquire(&core_running_lock);
     cpu_status.core_running ++;
-    release(&spinlocks[0]);
+    release(&core_running_lock);
 
     asm("sti");
     main();

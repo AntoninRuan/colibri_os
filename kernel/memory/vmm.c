@@ -3,10 +3,11 @@
 #include <kernel/memory/physical_allocator.h>
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
+#include <kernel/sync.h>
 #include <stdint.h>
 #include <string.h>
 
-vmm_info_t kernel_vmm = {0};
+vmm_info_t kernel_vmm = { .lock.name = "Kernel vmm" };
 vmm_info_t *current_vmm = &kernel_vmm;
 
 void vmm_init(vmm_info_t *vmm, void *pagetable, uintptr_t start, uintptr_t end,
@@ -44,6 +45,7 @@ memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, uint64_t sz,
     uintptr_t high_bound = vmm->vmm_data_end;
     uintptr_t found = 0;
 
+    acquire(&vmm->lock);
     memory_area_t *cur = vmm->current_area;
     memory_area_t *prev = NULL;
     if (cur == NULL)
@@ -91,7 +93,10 @@ memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, uint64_t sz,
         cur = NULL;
     }
 
-    if (!found) return NULL;
+    if (!found) {
+        release(&vmm->lock);
+        return NULL;
+    }
 
     // Current container is full creating a new one, or there is no existing
     // container
@@ -134,7 +139,7 @@ memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, uint64_t sz,
         vmm->current_area = new;
         vmm->current_addr = new->start + new->size - 1;
     }
-
+    release(&vmm->lock);
     return new;
 }
 

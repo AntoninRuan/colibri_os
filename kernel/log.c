@@ -18,12 +18,12 @@ void disable_tty_log() { log_tty = false; }
 
 void log(log_level_t level, const char *msg) {
     if (!(log_qemu || log_tty)) return;
-    char prefix[64] = {0};
+    char prefix[32] = {0};
     sprintf(prefix, "[%s]: ", level_prefix[level]);
     if (log_qemu) {
-        qemu_write_string(prefix);
-        qemu_write_string(msg);
-        qemu_write_string("\n");
+        char fmsg[200] = {0};
+        sprintf(fmsg, "%s%s\n", prefix, msg);
+        qemu_print(fmsg);
     }
 
     if (log_tty) {
@@ -34,7 +34,7 @@ void log(log_level_t level, const char *msg) {
 void logf(log_level_t level, const char *msg, ...) {
     if (!(log_qemu || log_tty)) return;
     va_list ap;
-    char final[512] = {0};
+    char final[128] = {0};
 
     va_start(ap, msg);
     vsprintf(final, msg, ap);

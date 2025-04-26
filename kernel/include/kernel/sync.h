@@ -1,5 +1,5 @@
-#ifndef SPINLOCK_H
-#define SPINLOCK_H
+#ifndef SYNC_H
+#define SYNC_H
 
 #include <stdint.h>
 
@@ -8,13 +8,12 @@ struct spinlock {
 
     // Debug value
     uint32_t cpu_id;
+    char* name;
 };
 
 typedef struct spinlock spinlock_t;
 
-extern spinlock_t spinlocks[512];
-
 void acquire(spinlock_t *);
 void release(spinlock_t *);
 
-#endif  // SPINLOCK_H
+#endif // SYNC_H

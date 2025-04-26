@@ -1,6 +1,6 @@
 #include <kernel/kernel.h>
 #include <kernel/log.h>
-#include <kernel/synchronization/spinlock.h>
+#include <kernel/sync.h>
 #include <math.h>
 #include <stdbool.h>
 
@@ -14,16 +14,16 @@ void acquire(spinlock_t *lock) {
     disable_interrupt();
 
     if (holding(lock)) {
-        logf(ERROR, "CPU %d is already holding lock", get_cpu_id());
+        logf(ERROR, "CPU %d is already holding lock %s", get_cpu_id(), lock->name);
         panic("acquire");
     }
 
 #define WARNING 10000000
     uint64_t nb_tries = 0;
     bool warned = false;
-    while (__sync_lock_test_and_set(&lock->held, 1) != 0) {
+    while (__atomic_test_and_set(&lock->held, __ATOMIC_ACQUIRE)) {
         if (nb_tries > WARNING && !warned) {
-            logf(WARNING, "CPU %d is waiting for a lock", get_cpu_id());
+            logf(WARNING, "CPU %d is waiting for lock %s", get_cpu_id(), lock->name);
             warned = true;
         }
         nb_tries++;
@@ -37,9 +37,9 @@ void release(spinlock_t *lock) {
 
     lock->cpu_id = 0;
 
-    __sync_synchronize();
+    __atomic_thread_fence(__ATOMIC_ACQ_REL);
 
-    __sync_lock_release(&lock->held);
+    __atomic_clear(&lock->held, __ATOMIC_RELEASE);
 
     enable_interrupt();
 }
