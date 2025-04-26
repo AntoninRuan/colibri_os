@@ -44,7 +44,7 @@
 
 ## SMP
 
-- [ ] Detection and init of other cores
+- [x] Detection and init of other cores
 - [ ] Synchronisation (spinlock, semaphore, ...)
 
 ## CPU Extensions
@@ -63,4 +63,4 @@
 - [x] Support multiboot2
 - [x] Replace gcc with clang for easier cross compiling
 - [x] Basic logging (maybe over serial port)
-- [ ] Setup timers
+- [x] Setup timers
