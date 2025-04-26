@@ -25,6 +25,10 @@ int terminal_initialize(struct framebuffer *fb) {
     // display.addr is still a physical address
     // asking to map it to a virtual one
     uint64_t vaddr = (uint64_t) map_mmio(NULL, display.addr, display.pitch * display.height, true);
+    if (vaddr == 0) {
+        logf(ERROR, "MMIO mapping for terminal buffer failed");
+        return 1;
+    }
     display.addr = vaddr;
 
     font_start = (uint8_t *)(&_binary_font_psfu_start + font->headersize);

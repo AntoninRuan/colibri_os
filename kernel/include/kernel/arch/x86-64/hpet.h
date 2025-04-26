@@ -65,6 +65,6 @@ typedef union timer_config timer_config_t;
 
 #define HPET_BASE_INT_VEC 0x30
 
-void setup_hpet();
+int setup_hpet();
 
 #endif // HPET_H

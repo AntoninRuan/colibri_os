@@ -1,5 +1,5 @@
-#define __is_asm
 #include <kernel/multiboot2.h>
+#include <kernel/kernel.h>
 
     // Declare multiboot header
     .section .multiboot.text, "a"
@@ -25,7 +25,7 @@ multiboot_header_end:
     .section .bss, "aw", @nobits
     .align 16
 stack_bottom:
-    .skip 16384
+    .skip 16384 * MAX_CORES
 stack_top:
 
     // Kernel entry point
@@ -84,6 +84,14 @@ fill_p2:
 
     // Default paging is configured
 
+    // Get local APIC ID (CPUID.1:EBX[24..32])
+    mov $1, %eax
+    cpuid
+    shrl $24, %ebx
+    movl %ebx, %ebx
+
+    .global ap_boot
+ap_boot:
     // Control register can only be written from gp reg
     // Enabling Physical Address Extension
     movl %cr4, %eax
@@ -126,8 +134,12 @@ long_mode_jump:
     jmpq *%rax
 
 kernel64:
-    // Setup stack
+    // Setup stack 16k for each core
+    movl %ebx, %eax
+    shlq $14, %rax
     movq $stack_top, %rsp
+    subq %rax, %rsp
+
 
     // Update gdt to read in higher half mapped memory
     lgdt gdtr_high
@@ -144,10 +156,20 @@ kernel64:
     orq $1<<1, %rax             // set MP flag
     movq %rax, %cr0
 
-    call pre_main
+bsp_detection:
+    // We want to check if are running on bsp or not
+    xorq %rax, %rax
+    movl cpu_status, %eax
+    cmp $MAX_CORES, %eax
+    jae bsp_init
 
-    // Transfer control to kernel.c
-    call main
+ap_init:
+    movq %rbx, %rdi
+    call ap_startup
+
+bsp_init:
+    movq %rbx, %rdx
+    call bsp_startup
 
 noSSE:
     // Hang if kernel_main returns. (Should not happen)

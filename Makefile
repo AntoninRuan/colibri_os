@@ -24,8 +24,8 @@ clean:
 
 CPUS ?= 1
 
-QEMU_FLAGS := -cpu max -machine q35 -m 256M -no-reboot -smp $(CPUS) -cdrom $(OS_NAME).iso -serial stdio
-QEMU_FLAG_DEBUG := -s -S -no-shutdown -monitor telnet:127.0.0.1:7777,server,nowait
+QEMU_FLAGS := -cpu max -machine q35 -m 256M -no-reboot -no-shutdown -smp $(CPUS) -cdrom $(OS_NAME).iso -serial stdio
+QEMU_FLAG_DEBUG := -s -S -monitor telnet:127.0.0.1:7777,server,nowait
 
 .gdbinit: Makefile
 	echo -e 'target remote localhost:1234\nfile $(BOOTDIR)/$(OS_NAME).kernel\n' > .gdbinit

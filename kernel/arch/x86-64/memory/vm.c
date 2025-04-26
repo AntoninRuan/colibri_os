@@ -16,10 +16,15 @@
 
 alignas(4096) pdpte_t physical_mapping[512] = {0}; // Goes to pml4[509]
 
-bool nx_flag_supported;
 bool big_page_size_supported;
 extern uint8_t pml4;
 pml4e_t *kernel_pml4;
+
+void enable_nx_flag() {
+    uint64_t ia32_efer = rdmsr(IA32_EFER);
+    ia32_efer |= (1L << 11);
+    wrmsr(IA32_EFER, ia32_efer);
+}
 
 void kvminit(struct multiboot_memory_map *mmap) {
     log(INFO, "Init virtual and physical memory");
@@ -27,20 +32,17 @@ void kvminit(struct multiboot_memory_map *mmap) {
 
     unsigned int eax, ebx, ecx, edx;
     __get_cpuid(0x80000001, &eax, &ebx, &ecx, &edx);
-    nx_flag_supported = (edx & (1L<<20)) != 0;
+    cpu_status.nx_flag_enabled = (edx & (1L<<20)) != 0;
     big_page_size_supported = (edx & (1L<<26)) != 0;
 
-    if(nx_flag_supported) {
-        uint64_t ia32_efer = rdmsr(IA32_EFER);
-        ia32_efer |= (1L << 11);
-        wrmsr(IA32_EFER, ia32_efer);
-    }
+    if (cpu_status.nx_flag_enabled)
+        enable_nx_flag();
 
     pml4e_t physical_entry = {0};
     physical_entry.raw = (uint64_t)(PHYSICAL_ADDRESS(physical_mapping));
     physical_entry.present = true;
     physical_entry.writable = true;
-    physical_entry.xd = nx_flag_supported;
+    physical_entry.xd = cpu_status.nx_flag_enabled;
     ((pml4e_t *)(pdpt_va(PML4_RECURSE_ENTRY)))[509] = physical_entry;
 
     // Determine RAM area
@@ -72,7 +74,7 @@ void kvminit(struct multiboot_memory_map *mmap) {
         entry.raw = (uint64_t) BIG_PAGE_SIZE * i;
         entry.present = true;
         entry.writable = true;
-        entry.xd = nx_flag_supported;
+        entry.xd = cpu_status.nx_flag_enabled;
         entry.page_size = 1;
         physical_mapping[i] = entry;
     }
@@ -81,12 +83,12 @@ void kvminit(struct multiboot_memory_map *mmap) {
     vmm_init(&kernel_vmm, kernel_pml4, 0, 0x800000000000, false);
 
     // Remove identity mapping
-    kernel_pml4[0].present = false;
+    // kernel_pml4[0].present = false;
 }
 
 uint64_t vmflag_to_x86flag(uint64_t flag) {
     uint64_t result = 0;
-    if (nx_flag_supported && !(flag & MEMORY_FLAG_EXEC)) {
+    if (cpu_status.nx_flag_enabled && !(flag & MEMORY_FLAG_EXEC)) {
         result |= 1L << 63;
     }
     result |= (flag & (MEMORY_FLAG_WRITE | MEMORY_FLAG_USER)) << 1;
@@ -202,7 +204,7 @@ void* map_mmio(vmm_info_t *vmm, uint64_t physical, size_t size, bool writable) {
     uint8_t flag = 0;
     if (writable) flag |= MEMORY_FLAG_WRITE;
     if (vmm->user_vmm) flag |= MEMORY_FLAG_USER;
-    memory_area_t *area = vmm_alloc(vmm, size, flag);
+    memory_area_t *area = vmm_alloc_at(BIG_PAGE_SIZE, vmm, size, flag);
     int result = mappages(vmm->root_pagetable, (void *)area->start, area->size,
                           (void *)physical, area->flags);
     if (result)

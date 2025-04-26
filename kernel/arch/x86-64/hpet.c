@@ -6,6 +6,7 @@
 #include <kernel/log.h>
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
+#include <kernel/timer.h>
 
 #include <kernel/arch/x86-64/hpet.h>
 #include <kernel/arch/x86-64/interrupt.h>
@@ -44,16 +45,16 @@ uint64_t hpet_vec_handler[32] = {
     (uint64_t)&vector_handler_0x3E
 };
 
-volatile uint64_t *base_addr;
+volatile uint64_t *hpet_base_addr;
 uint32_t hpet_period;
 uint8_t timer_count;
 bool hpet_available = false;
 
 uint64_t read_hpet_register(uint16_t reg) {
-    return *(base_addr + reg);
+    return *(hpet_base_addr + reg);
 }
 void write_hpet_register(uint16_t reg, uint64_t value) {
-    *(base_addr + reg) = value;
+    *(hpet_base_addr + reg) = value;
 }
 
 void enable_hpet() {
@@ -73,8 +74,8 @@ uint64_t poll_hpet() {
     return read_hpet_register(MAIN_COUNTER_VALUE_REG);
 }
 
-void sleep_polled_hpet(uint64_t millis) {
-    uint64_t cycle = (millis * 1e12) / hpet_period;
+void sleep_polled_hpet(uint64_t femto) {
+    uint64_t cycle = femto / hpet_period;
     uint64_t main_counter = poll_hpet();
     uint64_t target = main_counter + cycle;
 
@@ -83,6 +84,12 @@ void sleep_polled_hpet(uint64_t millis) {
 
     while(poll_hpet() < target) {}
     return;
+}
+
+void nanodelay(uint64_t nano) { sleep_polled_hpet(nano * 10e6); }
+
+void millidelay(uint64_t milli) {
+    nanodelay(milli * 10e6);
 }
 
 int arm_hpet_timer(uint8_t timer, uint64_t femto, bool periodic) {
@@ -125,14 +132,17 @@ int arm_hpet_timer(uint8_t timer, uint64_t femto, bool periodic) {
     return 0;
 }
 
-void setup_hpet() {
-    enable_tty_log();
+int setup_hpet() {
     acpi_sdt_header_t *header = find_table("HPET");
-    if (!validate_sdt(header)) return;
+    if (!validate_sdt(header)) return 1;
 
     hpet_acpi_t *hpet_table = (hpet_acpi_t *) header;
 
-    base_addr = map_mmio(&kernel_vmm, hpet_table->base_addr.addr, 0x400, true);
+    hpet_base_addr = map_mmio(&kernel_vmm, hpet_table->base_addr.addr, 0x400, true);
+    if (hpet_base_addr == NULL) {
+        logf(ERROR, "MMIO mapping for hpet failed");
+        return 1;
+    }
 
     uint64_t general_cap = read_hpet_register(GENERAL_CAPABILTIES_REG);
     timer_count = ((general_cap >> 8) & 0x1F) + 1;
@@ -149,5 +159,5 @@ void setup_hpet() {
 
     }
 
-    disable_tty_log();
+    return 0;
 }

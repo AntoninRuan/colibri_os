@@ -56,7 +56,11 @@ memory_area_t* vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, uint64_t sz, uint8_
         // In case the last given address is too high, search for memory avaible in gaps
         cur = vmm->first_area;
         while (cur) {
-            if (cur->start + cur->size - 1 < base) continue;
+            if (cur->start + cur->size - 1 < base) {
+                prev = cur;
+                cur = cur->next;
+                continue;
+            }
             if (prev == NULL)
                 low_bound = vmm->vmm_data_start;
             else

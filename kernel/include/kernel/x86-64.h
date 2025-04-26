@@ -89,6 +89,17 @@ struct interrupt_frame {
     uint64_t iret_ss;
 };
 
+struct cpu_status {
+    uint32_t bsp_id;
+    uint32_t core_available;
+
+    uint32_t core_running;
+    bool nx_flag_enabled;
+};
+typedef struct cpu_status cpu_status_t;
+
+extern cpu_status_t cpu_status;
+
 static inline void outb(uint16_t port, uint8_t value) {
     asm volatile ("outb %b0, %w1" : : "a"(value), "Nd"(port) : "memory");
 }
@@ -112,5 +123,11 @@ static inline uint64_t rdmsr(uint32_t msr_id) {
 static inline void wrmsr(uint32_t msr_id, uint64_t msr_value) {
     asm volatile ("wrmsr" : : "d" (msr_value >> 32), "a" (msr_value & 0xFFFFFFFF), "c"(msr_id));
 }
+
+static inline void __asm_pause() {
+    asm volatile ("pause" : : : "memory");
+}
+
+void enable_nx_flag();
 
 #endif // X86_64_H

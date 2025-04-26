@@ -1,5 +1,6 @@
 #include <stdint.h>
 
+#include <kernel/kernel.h>
 #include <kernel/log.h>
 
 __attribute__((__noreturn__))
