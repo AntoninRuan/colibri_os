@@ -96,15 +96,14 @@ uint8_t last_scancode = 0;
 
 void handle_set1(uint8_t scancode) {
     if (last_scancode == 0xE0) {
-
     } else {
         if (scancode == 0xE0) goto end;
 
         if ((scancode & ~0x80) <= 0x58) {
-            enum scancode code = (enum scancode) scancode & ~0x80;
+            enum scancode code = (enum scancode)scancode & ~0x80;
 
             // Scancode are already equals to keycode
-            if (scancode >= 0x80) { // Key released
+            if (scancode >= 0x80) {  // Key released
                 key_release(code);
                 goto end;
             }

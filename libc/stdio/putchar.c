@@ -6,10 +6,10 @@
 #endif
 
 int putchar(uint8_t c) {
-    #ifdef __is_libk
+#ifdef __is_libk
     terminal_write(c);
-    #else
-    // TODO: Implement stdio and write syscall
-    #endif
+#else
+// TODO: Implement stdio and write syscall
+#endif
     return c;
 }

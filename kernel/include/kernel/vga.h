@@ -11,7 +11,7 @@ struct color {
 
 struct framebuffer {
     uint64_t addr;
-    uint32_t pitch;             // bytes per horizontal line
+    uint32_t pitch;  // bytes per horizontal line
     uint32_t width;
     uint32_t height;
     uint8_t bpp;
@@ -23,8 +23,7 @@ struct framebuffer {
 
     union {
         // If fb_type == 0
-        struct
-        {
+        struct {
             uint16_t palette_num_colors;
             struct color palette[0];
         };
@@ -40,4 +39,4 @@ struct framebuffer {
     };
 };
 
-#endif // VGA_H
+#endif  // VGA_H

@@ -11,7 +11,7 @@ uint8_t ceillog2(uint64_t value) {
         if (value & 1) sup = true;
 
         value >>= 1;
-        result ++;
+        result++;
     }
-    return result + (uint8_t) sup;
+    return result + (uint8_t)sup;
 }

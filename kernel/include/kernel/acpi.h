@@ -36,7 +36,7 @@
 #define is_acpi_table(header, type) !(memcmp(header->signature, type, 4))
 
 struct rsdp {
-    char signature[8];          // Not null terminated
+    char signature[8];  // Not null terminated
     uint8_t checksum;
     char oem_id[6];
     uint8_t revision;
@@ -44,11 +44,11 @@ struct rsdp {
 } __attribute__((packed));
 
 struct xsdp {
-    char signature[8];          // Not null terminated
+    char signature[8];  // Not null terminated
     uint8_t checksum;
     char oem_id[6];
     uint8_t revision;
-    uint32_t rsdt_addr;         // Deprecated in xsdp
+    uint32_t rsdt_addr;  // Deprecated in xsdp
 
     uint32_t length;
     uint64_t xsdt_address;
@@ -57,7 +57,7 @@ struct xsdp {
 } __attribute__((packed));
 
 struct acpi_sdt_header {
-    char signature[4];          // Not null terminated
+    char signature[4];  // Not null terminated
     uint32_t length;
     uint8_t revision;
     uint8_t checksum;
@@ -86,4 +86,4 @@ int load_xsdp(struct xsdp *);
 bool validate_sdt(acpi_sdt_header_t *);
 acpi_sdt_header_t *find_table(char *signature);
 
-#endif // ACPI_H
+#endif  // ACPI_H

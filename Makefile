@@ -13,14 +13,24 @@ LLVM_TARGET_FLAG := --target=$(HOST) -march=$(HOSTARCH)
 AR := llvm-ar
 CC := clang $(LLVM_TARGET_FLAG) -ggdb -std=gnu23
 
-.PHONY: all qemu qemu-gdb todo clean
+.PHONY: all qemu qemu-gdb todo clean format
 .SUFFIXES: .libk.o .c .S .o
+
+C_FILES != find libc/ kernel/ -name "*.[c|h]"
+ASM_FILES != find libc/ kernel/ -name "*.S"
+SOURCE_FILES := $(C_FILES) $(ASM_FILES)
 
 all: $(BOOTDIR)/$(OS_NAME).kernel
 
 clean:
 	rm -R $(BUILD)
 	rm -R $(SYSROOT)
+
+format:
+	clang-format -i $(C_FILES)
+
+todo:
+	grep -HnF -e TODO -e FIXME $(SOURCE_FILES)
 
 CPUS ?= 1
 
@@ -43,11 +53,6 @@ $(BOOTDIR)/grub/grub.cfg: Makefile
 	@mkdir -p $(BOOTDIR)/grub
 	echo -e 'set timeout=0' > $(SYSROOT)/boot/grub/grub.cfg
 	echo -e 'menuentry "$(OS_NAME)" {\n\tmultiboot2 /boot/$(OS_NAME).kernel\n}\n' >> $(SYSROOT)/boot/grub/grub.cfg
-
-SOURCE_FILES != find libc/ kernel/ -name "*.[c|S|h]"
-
-todo:
-	grep -HnF -e TODO -e FIXME $(SOURCE_FILES)
 
 # Making libk (and in the future libc)
 include libc/make.config

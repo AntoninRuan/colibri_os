@@ -2,10 +2,10 @@
 #define LOG_H
 
 enum log_level {
-  DEBUG,
-  INFO,
-  WARNING,
-  ERROR,
+    DEBUG,
+    INFO,
+    WARNING,
+    ERROR,
 };
 
 typedef enum log_level log_level_t;
@@ -13,6 +13,6 @@ typedef enum log_level log_level_t;
 void enable_tty_log();
 void disable_tty_log();
 void log(log_level_t, const char *);
-void logf(log_level_t, const char*, ...);
+void logf(log_level_t, const char *, ...);
 
-#endif // LOG_H
+#endif  // LOG_H

@@ -1,9 +1,9 @@
 #ifndef VMM_H
 #define VMM_H
 
+#include <kernel/memory/memory_layout.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <kernel/memory/memory_layout.h>
 
 struct memory_area;
 typedef struct memory_area memory_area_t;
@@ -53,9 +53,10 @@ extern vmm_info_t *current_vmm;
 void vmm_init(vmm_info_t *vmm, void *pagetable, uintptr_t start, uintptr_t end,
               bool user);
 memory_area_t *get_memory_area(vmm_info_t *vmm, void *va);
-memory_area_t* vmm_alloc_at(uintptr_t base, vmm_info_t *, uint64_t sz, uint8_t flags);
+memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *, uint64_t sz,
+                            uint8_t flags);
 memory_area_t *vmm_alloc(vmm_info_t *vmm, uint64_t sz, uint8_t flags);
 int vmm_free(vmm_info_t *vmm, memory_area_t *area);
 int on_demand_allocation(void *va);
 
-#endif // VMM_H
+#endif  // VMM_H

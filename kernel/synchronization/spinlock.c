@@ -1,9 +1,8 @@
+#include <kernel/kernel.h>
 #include <kernel/log.h>
+#include <kernel/synchronization/spinlock.h>
 #include <math.h>
 #include <stdbool.h>
-
-#include <kernel/kernel.h>
-#include <kernel/synchronization/spinlock.h>
 
 spinlock_t spinlocks[512] = {0};
 
@@ -22,12 +21,12 @@ void acquire(spinlock_t *lock) {
 #define WARNING 10000000
     uint64_t nb_tries = 0;
     bool warned = false;
-    while(__sync_lock_test_and_set(&lock->held, 1) != 0) {
+    while (__sync_lock_test_and_set(&lock->held, 1) != 0) {
         if (nb_tries > WARNING && !warned) {
             logf(WARNING, "CPU %d is waiting for a lock", get_cpu_id());
             warned = true;
         }
-        nb_tries ++;
+        nb_tries++;
     }
 
     lock->cpu_id = get_cpu_id();

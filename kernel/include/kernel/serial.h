@@ -5,4 +5,4 @@
 
 int init_serial(uint16_t port);
 
-#endif // SERIAL_H
+#endif  // SERIAL_H

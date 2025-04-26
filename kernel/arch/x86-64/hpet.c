@@ -1,16 +1,14 @@
-#include <kernel/x86.h>
-#include <stddef.h>
-#include <stdint.h>
-
 #include <kernel/acpi.h>
+#include <kernel/arch/x86-64/hpet.h>
+#include <kernel/arch/x86-64/interrupt.h>
+#include <kernel/arch/x86-64/ioapic.h>
 #include <kernel/log.h>
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
 #include <kernel/timer.h>
-
-#include <kernel/arch/x86-64/hpet.h>
-#include <kernel/arch/x86-64/interrupt.h>
-#include <kernel/arch/x86-64/ioapic.h>
+#include <kernel/x86.h>
+#include <stddef.h>
+#include <stdint.h>
 
 extern uint8_t vector_handler_0x30;
 extern uint8_t vector_handler_0x31;
@@ -28,31 +26,22 @@ extern uint8_t vector_handler_0x3C;
 extern uint8_t vector_handler_0x3D;
 extern uint8_t vector_handler_0x3E;
 uint64_t hpet_vec_handler[32] = {
-    (uint64_t)&vector_handler_0x30,
-    (uint64_t)&vector_handler_0x31,
-    (uint64_t)&vector_handler_0x32,
-    (uint64_t)&vector_handler_0x33,
-    (uint64_t)&vector_handler_0x34,
-    (uint64_t)&vector_handler_0x35,
-    (uint64_t)&vector_handler_0x36,
-    (uint64_t)&vector_handler_0x37,
-    (uint64_t)&vector_handler_0x38,
-    (uint64_t)&vector_handler_0x39,
-    (uint64_t)&vector_handler_0x3A,
-    (uint64_t)&vector_handler_0x3B,
-    (uint64_t)&vector_handler_0x3C,
-    (uint64_t)&vector_handler_0x3D,
-    (uint64_t)&vector_handler_0x3E
-};
+    (uint64_t)&vector_handler_0x30, (uint64_t)&vector_handler_0x31,
+    (uint64_t)&vector_handler_0x32, (uint64_t)&vector_handler_0x33,
+    (uint64_t)&vector_handler_0x34, (uint64_t)&vector_handler_0x35,
+    (uint64_t)&vector_handler_0x36, (uint64_t)&vector_handler_0x37,
+    (uint64_t)&vector_handler_0x38, (uint64_t)&vector_handler_0x39,
+    (uint64_t)&vector_handler_0x3A, (uint64_t)&vector_handler_0x3B,
+    (uint64_t)&vector_handler_0x3C, (uint64_t)&vector_handler_0x3D,
+    (uint64_t)&vector_handler_0x3E};
 
 volatile uint64_t *hpet_base_addr;
 uint32_t hpet_period;
 uint8_t timer_count;
 bool hpet_available = false;
 
-uint64_t read_hpet_register(uint16_t reg) {
-    return *(hpet_base_addr + reg);
-}
+uint64_t read_hpet_register(uint16_t reg) { return *(hpet_base_addr + reg); }
+
 void write_hpet_register(uint16_t reg, uint64_t value) {
     *(hpet_base_addr + reg) = value;
 }
@@ -70,9 +59,7 @@ void configure_timer(uint8_t timer, timer_config_t conf) {
     write_hpet_register(TIMER_CONFIG_REG(timer), conf.raw);
 }
 
-uint64_t poll_hpet() {
-    return read_hpet_register(MAIN_COUNTER_VALUE_REG);
-}
+uint64_t poll_hpet() { return read_hpet_register(MAIN_COUNTER_VALUE_REG); }
 
 void sleep_polled_hpet(uint64_t femto) {
     uint64_t cycle = femto / hpet_period;
@@ -80,31 +67,31 @@ void sleep_polled_hpet(uint64_t femto) {
     uint64_t target = main_counter + cycle;
 
     if (main_counter > target)
-        while(poll_hpet() > target) {}
+        while (poll_hpet() > target) {
+        }
 
-    while(poll_hpet() < target) {}
+    while (poll_hpet() < target) {
+    }
     return;
 }
 
 void nanodelay(uint64_t nano) { sleep_polled_hpet(nano * 10e6); }
 
-void millidelay(uint64_t milli) {
-    nanodelay(milli * 10e6);
-}
+void millidelay(uint64_t milli) { nanodelay(milli * 10e6); }
 
 int arm_hpet_timer(uint8_t timer, uint64_t femto, bool periodic) {
     if (timer >= timer_count) return 1;
-    uint64_t cycle = femto / (uint64_t) hpet_period;
-    timer_config_t config = (timer_config_t) read_hpet_register(TIMER_CONFIG_REG(timer));
+    uint64_t cycle = femto / (uint64_t)hpet_period;
+    timer_config_t config =
+        (timer_config_t)read_hpet_register(TIMER_CONFIG_REG(timer));
 
     if (config.int_route_cnf == 0) {
         uint8_t irq_used = 9;
         uint32_t available_irq = config.int_route_cap;
-        available_irq >>=9;
+        available_irq >>= 9;
         while (available_irq) {
-
             while ((available_irq & 1) == 0) {
-                irq_used ++;
+                irq_used++;
                 available_irq >>= 1;
             }
             if (!set_irq(irq_used, 0x30 + timer, 0, false)) break;
@@ -125,9 +112,8 @@ int arm_hpet_timer(uint8_t timer, uint64_t femto, bool periodic) {
 
     write_hpet_register(TIMER_COMPARATOR_REG(timer), poll_hpet() + cycle);
     write_hpet_register(TIMER_CONFIG_REG(timer), config.raw);
-	write_hpet_register(TIMER_COMPARATOR_REG(timer), poll_hpet() + cycle);
-	if (periodic)
-        write_hpet_register(TIMER_COMPARATOR_REG(timer), cycle);
+    write_hpet_register(TIMER_COMPARATOR_REG(timer), poll_hpet() + cycle);
+    if (periodic) write_hpet_register(TIMER_COMPARATOR_REG(timer), cycle);
 
     return 0;
 }
@@ -136,9 +122,10 @@ int setup_hpet() {
     acpi_sdt_header_t *header = find_table("HPET");
     if (!validate_sdt(header)) return 1;
 
-    hpet_acpi_t *hpet_table = (hpet_acpi_t *) header;
+    hpet_acpi_t *hpet_table = (hpet_acpi_t *)header;
 
-    hpet_base_addr = map_mmio(&kernel_vmm, hpet_table->base_addr.addr, 0x400, true);
+    hpet_base_addr =
+        map_mmio(&kernel_vmm, hpet_table->base_addr.addr, 0x400, true);
     if (hpet_base_addr == NULL) {
         logf(ERROR, "MMIO mapping for hpet failed");
         return 1;
@@ -151,12 +138,10 @@ int setup_hpet() {
 
     enable_hpet();
 
-    for (uint8_t i = 0; i < timer_count; i ++) {
+    for (uint8_t i = 0; i < timer_count; i++) {
         set_idt_entry(HPET_BASE_INT_VEC + i, hpet_vec_handler[i],
                       GDT_ENTRY_KERNEL_CODE,
-                      FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE)
-            );
-
+                      FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE));
     }
 
     return 0;

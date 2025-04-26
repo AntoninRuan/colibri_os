@@ -6,4 +6,4 @@
 void nanodelay(uint64_t);
 void millidelay(uint64_t);
 
-#endif // TIMER_H
+#endif  // TIMER_H

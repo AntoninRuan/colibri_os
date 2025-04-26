@@ -5,4 +5,4 @@
 #include <kernel/arch/x86-64/memory_layout.h>
 #endif
 
-#endif // MEMORY_LAYOUT_H
+#endif  // MEMORY_LAYOUT_H

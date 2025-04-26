@@ -4,7 +4,7 @@
 #include <kernel/memory/vmm.h>
 
 void init_phys_allocator(memory_area_t *ram_available);
-void* kalloc();
+void *kalloc();
 void kfree(void *);
 
-#endif // PHYSICAL_ALLOCATOR_H
+#endif  // PHYSICAL_ALLOCATOR_H

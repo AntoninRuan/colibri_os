@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define IRQ_PIT      0x0
-#define IRQ_KEYBOARD 0x1
+#define IRQ_PIT           0x0
+#define IRQ_KEYBOARD      0x1
 #define IRQ_HPET_TIMER(n) (0x30 + n)
 
 #define IRQ_VECTOR_PIT      0X20
@@ -34,22 +34,23 @@
 #define MACHINE_CHECK          18
 #define SIMD_ERROR             19
 
-#define IA32_EFER              0xC0000080
+#define IA32_EFER 0xC0000080
 
-// Description of flag in Volume 3 Section 5.7 of Intel IA32 Software developpers manual
+// Description of flag in Volume 3 Section 5.7 of Intel IA32 Software
+// developpers manual
 union page_fault_error_code {
     struct {
-        uint32_t present    :1;
-        uint32_t write      :1;
-        uint32_t user       :1;
-        uint32_t rsvd       :1;
-        uint32_t ifetch     :1;
-        uint32_t pk         :1;
-        uint32_t ss         :1;
-        uint32_t hlat       :1;
-        uint32_t reserved   :7;
-        uint32_t sgx        :1;
-        uint32_t reserved_2 :16;
+        uint32_t present    : 1;
+        uint32_t write      : 1;
+        uint32_t user       : 1;
+        uint32_t rsvd       : 1;
+        uint32_t ifetch     : 1;
+        uint32_t pk         : 1;
+        uint32_t ss         : 1;
+        uint32_t hlat       : 1;
+        uint32_t reserved   : 7;
+        uint32_t sgx        : 1;
+        uint32_t reserved_2 : 16;
     };
     uint32_t raw;
 };
@@ -101,33 +102,32 @@ typedef struct cpu_status cpu_status_t;
 extern cpu_status_t cpu_status;
 
 static inline void outb(uint16_t port, uint8_t value) {
-    asm volatile ("outb %b0, %w1" : : "a"(value), "Nd"(port) : "memory");
+    asm volatile("outb %b0, %w1" : : "a"(value), "Nd"(port) : "memory");
 }
 
 static inline uint8_t inb(uint16_t port) {
     uint8_t value;
-    asm volatile ("inb %w1, %b0" : "=a"(value) : "Nd"(port) : "memory");
+    asm volatile("inb %w1, %b0" : "=a"(value) : "Nd"(port) : "memory");
     return value;
 }
 
-static inline void iowait() {
-    outb(0x80, 0);
-}
+static inline void iowait() { outb(0x80, 0); }
 
 static inline uint64_t rdmsr(uint32_t msr_id) {
     uint64_t high, low;
-    asm volatile ("rdmsr" : "=d" (high), "=a" (low) : "c"(msr_id));
+    asm volatile("rdmsr" : "=d"(high), "=a"(low) : "c"(msr_id));
     return (high << 32) | low;
 }
 
 static inline void wrmsr(uint32_t msr_id, uint64_t msr_value) {
-    asm volatile ("wrmsr" : : "d" (msr_value >> 32), "a" (msr_value & 0xFFFFFFFF), "c"(msr_id));
+    asm volatile("wrmsr"
+                 :
+                 : "d"(msr_value >> 32), "a"(msr_value & 0xFFFFFFFF),
+                   "c"(msr_id));
 }
 
-static inline void __asm_pause() {
-    asm volatile ("pause" : : : "memory");
-}
+static inline void __asm_pause() { asm volatile("pause" : : : "memory"); }
 
 void enable_nx_flag();
 
-#endif // X86_64_H
+#endif  // X86_64_H

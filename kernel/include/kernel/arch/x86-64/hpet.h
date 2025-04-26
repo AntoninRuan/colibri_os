@@ -1,8 +1,8 @@
 #ifndef HPET_H
 #define HPET_H
 
-#include <stdint.h>
 #include <kernel/acpi.h>
+#include <stdint.h>
 
 struct generic_address {
     uint8_t addr_space_id;
@@ -13,11 +13,11 @@ struct generic_address {
 } __attribute__((packed));
 
 struct timer_block_id {
-    uint8_t hardware_rev_id;       // Bit 0..7
-    uint8_t comparator_cound  : 5; // Bit 8..12
-    uint8_t count_size_cap    : 1; // Bit 13
-    uint8_t reserved          : 1; // Bit 14
-    uint8_t legacy_replacement :1; // Bit 15
+    uint8_t hardware_rev_id;         // Bit 0..7
+    uint8_t comparator_cound   : 5;  // Bit 8..12
+    uint8_t count_size_cap     : 1;  // Bit 13
+    uint8_t reserved           : 1;  // Bit 14
+    uint8_t legacy_replacement : 1;  // Bit 15
     uint16_t pci_vendor_id;
 } __attribute__((packed));
 
@@ -35,19 +35,19 @@ typedef struct hpet_acpi hpet_acpi_t;
 
 union timer_config {
     struct {
-        uint8_t                 :1; // Bit 0
-        uint8_t int_type_cnf    :1; // Bit 1
-        uint8_t int_enb_cnf     :1; // Bit 2
-        uint8_t per_int_cnf     :1; // Bit 3
-        uint8_t per_int_cap     :1; // Bit 4
-        uint8_t size_cap        :1; // Bit 5
-        uint8_t val_set_cnf     :1; // Bit 6
-        uint8_t                 :1; // Bit 7
-        uint8_t mode32_cnf      :1; // Bit 8
-        uint8_t int_route_cnf   :5; // Bit 9..13
-        uint8_t fsb_en_cnf      :1; // Bit 14
-        uint8_t fsb_int_del_cap :1; // Bit 15
-        uint16_t                :0;
+        uint8_t                 : 1;  // Bit 0
+        uint8_t int_type_cnf    : 1;  // Bit 1
+        uint8_t int_enb_cnf     : 1;  // Bit 2
+        uint8_t per_int_cnf     : 1;  // Bit 3
+        uint8_t per_int_cap     : 1;  // Bit 4
+        uint8_t size_cap        : 1;  // Bit 5
+        uint8_t val_set_cnf     : 1;  // Bit 6
+        uint8_t                 : 1;  // Bit 7
+        uint8_t mode32_cnf      : 1;  // Bit 8
+        uint8_t int_route_cnf   : 5;  // Bit 9..13
+        uint8_t fsb_en_cnf      : 1;  // Bit 14
+        uint8_t fsb_int_del_cap : 1;  // Bit 15
+        uint16_t                : 0;
         uint32_t int_route_cap;
     };
     uint64_t raw;
@@ -67,4 +67,4 @@ typedef union timer_config timer_config_t;
 
 int setup_hpet();
 
-#endif // HPET_H
+#endif  // HPET_H

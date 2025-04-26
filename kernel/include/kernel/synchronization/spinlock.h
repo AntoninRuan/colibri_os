@@ -14,7 +14,7 @@ typedef struct spinlock spinlock_t;
 
 extern spinlock_t spinlocks[512];
 
-void acquire(spinlock_t*);
-void release(spinlock_t*);
+void acquire(spinlock_t *);
+void release(spinlock_t *);
 
-#endif // SPINLOCK_H
+#endif  // SPINLOCK_H

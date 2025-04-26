@@ -14,4 +14,4 @@ struct pc_font {
     uint32_t width;         /* width in pixels */
 };
 
-#endif // PC_FONT_H
+#endif  // PC_FONT_H

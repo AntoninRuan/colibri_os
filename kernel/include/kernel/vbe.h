@@ -9,7 +9,7 @@ http://www.petesqbsite.com/sections/tutorials/tuts/vbe3.pdf
 #include <stdint.h>
 
 struct vbe_info {
-    char signature[4];          // Should always be "VESA"
+    char signature[4];  // Should always be "VESA"
     uint16_t version;
     uint32_t oem_string_ptr;
     uint8_t capabalities[4];
@@ -33,7 +33,7 @@ struct vbe_mode_info {
     uint16_t win_a_segment;
     uint16_t win_b_segment;
     uint32_t win_func_ptr;
-    uint16_t pitch;             // bytes per horizontal line
+    uint16_t pitch;  // bytes per horizontal line
 
     // Mandatory for VBE >= 1.2
     uint16_t width;
@@ -44,7 +44,7 @@ struct vbe_mode_info {
     uint8_t bpp;
     uint8_t bank_number;
     uint8_t memory_model;
-    uint8_t bank_size;          // in KB
+    uint8_t bank_size;  // in KB
     uint8_t image_number;
     uint8_t reserved_page;
 
@@ -81,6 +81,6 @@ struct vbe_mode_info {
     uint8_t reserved[189];
 };
 
-#endif // __is_asm
+#endif  // __is_asm
 
-#endif // KERNEL_VBE_H
+#endif  // KERNEL_VBE_H

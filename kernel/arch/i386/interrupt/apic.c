@@ -1,14 +1,11 @@
 #include <cpuid.h>
+#include <kernel/acpi.h>
+#include <kernel/arch/i386/apic.h>
+#include <kernel/arch/i386/interrupt.h>
+#include <kernel/x86.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#include <kernel/x86.h>
-#include <kernel/acpi.h>
-
-#include <kernel/arch/i386/interrupt.h>
-#include <kernel/arch/i386/apic.h>
-
 
 uint32_t lapic_base_address = 0;
 bool support_xapic2 = false;
@@ -49,7 +46,7 @@ uint32_t read_lapic_register(uint32_t reg) {
         uint32_t apic_reg_msr = 0x800 + (reg >> 4);
         value = rdmsr(apic_reg_msr);
     } else {
-        uint32_t *index = (uint32_t *) (lapic_base_address + reg);
+        uint32_t *index = (uint32_t *)(lapic_base_address + reg);
         value = *index;
     }
     return value;
@@ -58,43 +55,40 @@ uint32_t read_lapic_register(uint32_t reg) {
 void write_lapic_register(uint32_t reg, uint32_t value) {
     if (support_xapic2) {
         uint32_t apic_reg_msr = 0x800 + (reg >> 4);
-        wrmsr(apic_reg_msr, (uint64_t) value);
+        wrmsr(apic_reg_msr, (uint64_t)value);
     } else {
-        uint32_t *index = (uint32_t *) (lapic_base_address + reg);
-        *index= value;
+        uint32_t *index = (uint32_t *)(lapic_base_address + reg);
+        *index = value;
     }
 }
 
-void send_eoi() {
-    write_lapic_register(LAPIC_REGISTER_EOI, 0);
-}
+void send_eoi() { write_lapic_register(LAPIC_REGISTER_EOI, 0); }
 
 // Defined in isr_wrapper.S
 extern uint8_t vector_handler_0xFF;
 
 int enable_lapic() {
-    if(!check_lapic_availability()) return 1;
+    if (!check_lapic_availability()) return 1;
 
     disable_pic();
 
     uint64_t apic_base = rdmsr(IA32_APIC_BASE);
 
-    apic_base |= 0x800;         // Make sure lapic is enabled
+    apic_base |= 0x800;  // Make sure lapic is enabled
 
-    if(support_xapic2) {        // Always enable xapic2 if it is supported
+    if (support_xapic2) {  // Always enable xapic2 if it is supported
         apic_base |= (1 << 10);
     }
 
     wrmsr(IA32_APIC_BASE, apic_base);
 
-    lapic_base_address = (apic_base & 0xFFFFF000); // Only used if using xapic
+    lapic_base_address = (apic_base & 0xFFFFF000);  // Only used if using xapic
 
     uint32_t spurious_vector = 0xFF | 0x100;
 
     write_lapic_register(LAPIC_REGISTER_SPURIOUS_VECTOR, spurious_vector);
 
-    set_idt_entry(0xFF, (uint32_t) &vector_handler_0xFF,
-                  GDT_ENTRY_KERNEL_CODE,
+    set_idt_entry(0xFF, (uint32_t)&vector_handler_0xFF, GDT_ENTRY_KERNEL_CODE,
                   FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE));
 
     return 0;

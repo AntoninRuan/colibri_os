@@ -1,4 +1,12 @@
+---
+BasedOnStyle: google
+
+AlignConsecutiveBitFields: AcrossComments
+AlignConsecutiveMacros: AcrossComments
+AlignEscapedNewlines: LeftWithLastLine
+DerivePointerAlignment: true
+PointerAlignment: Left
 IndentCaseLabels: true
 IndentWidth: 4
 TabWidth: 4
-UseTab: Always
+UseTab: Never

@@ -8,45 +8,45 @@
 #define MULTIBOOT_ARCH_I386   0
 #define MULTIBOOT_ARCH_MIPS32 4
 
-#define MULTIBOOT_HEADER_TAG_END                  0
-#define MULTIBOOT_HEADER_TAG_INFO_REQUEST         1
-#define MULTIBOOT_HEADER_TAG_ADDRESS              2
-#define MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS        3
-#define MULTIBOOT_HEADER_TAG_FLAGS                4
-#define MULTIBOOT_HEADER_TAG_FRAMEBUFFER          5
-#define MULTIBOOT_HEADER_TAG_MODULE_ALIGNMENT     6
-#define MULTIBOOT_HEADER_TAG_EFI_BOOT_SERVICE     7
-#define MULTIBOOT_HEADER_TAG_I386_ENTRY_ADDRESS   8
-#define MULTIBOOT_HEADER_TAG_AMD64_ENTRY_ADDRESS  9
-#define MULTIBOOT_HEADER_TAG_RELOCATABLE          10
+#define MULTIBOOT_HEADER_TAG_END                 0
+#define MULTIBOOT_HEADER_TAG_INFO_REQUEST        1
+#define MULTIBOOT_HEADER_TAG_ADDRESS             2
+#define MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS       3
+#define MULTIBOOT_HEADER_TAG_FLAGS               4
+#define MULTIBOOT_HEADER_TAG_FRAMEBUFFER         5
+#define MULTIBOOT_HEADER_TAG_MODULE_ALIGNMENT    6
+#define MULTIBOOT_HEADER_TAG_EFI_BOOT_SERVICE    7
+#define MULTIBOOT_HEADER_TAG_I386_ENTRY_ADDRESS  8
+#define MULTIBOOT_HEADER_TAG_AMD64_ENTRY_ADDRESS 9
+#define MULTIBOOT_HEADER_TAG_RELOCATABLE         10
 
-#define MULTIBOOT_HEADER_FLAG_OPTIONAL            1
+#define MULTIBOOT_HEADER_FLAG_OPTIONAL 1
 
-#define MULTIBOOT_TAG_TYPE_BOOT_CMD_LINE          1
-#define MULTIBOOT_TAG_TYPE_BOOTLOADER_NAME        2
-#define MULTIBOOT_TAG_TYPE_MODULES                3
-#define MULTIBOOT_TAG_TYPE_BASIC_MEMINFO          4
-#define MULTIBOOT_TAG_TYPE_BIOS_BOOT_DEVICE       5
-#define MULTIBOOT_TAG_TYPE_MEMORY_MAP             6
-#define MULTIBOOT_TAG_TYPE_VBE_INFO               7
-#define MULTIBOOT_TAG_TYPE_FRAMEBUFFER_INFO       8
-#define MULTIBOOT_TAG_TYPE_ELF_SYMBOLS            9
-#define MULTIBOOT_TAG_TYPE_APM_TABLE              10
-#define MULTIBOOT_TAG_TYPE_EFI32_TP               11
-#define MULTIBOOT_TAG_TYPE_EFI64_TP               12
-#define MULTIBOOT_TAG_TYPE_SMBIOS                 13
-#define MULTIBOOT_TAG_TYPE_ACPI_OLD               14
-#define MULTIBOOT_TAG_TYPE_ACPI_NEW               15
-#define MULTIBOOT_TAG_TYPE_NETWORK                16
-#define MULTIBOOT_TAG_TYPE_EFI_MMAP               17
-#define MULTIBOOT_TAG_TYPE_EFI_BOOT_SERVICE       18
-#define MULTIBOOT_TAG_TYPE_EFI32_IMAGE_HANDLE     19
-#define MULTIBOOT_TAG_TYPE_EFI64_IMAGE_HANDLE     20
-#define MULTIBOOT_TAG_TYPE_BASE_ADDRESS           21
+#define MULTIBOOT_TAG_TYPE_BOOT_CMD_LINE      1
+#define MULTIBOOT_TAG_TYPE_BOOTLOADER_NAME    2
+#define MULTIBOOT_TAG_TYPE_MODULES            3
+#define MULTIBOOT_TAG_TYPE_BASIC_MEMINFO      4
+#define MULTIBOOT_TAG_TYPE_BIOS_BOOT_DEVICE   5
+#define MULTIBOOT_TAG_TYPE_MEMORY_MAP         6
+#define MULTIBOOT_TAG_TYPE_VBE_INFO           7
+#define MULTIBOOT_TAG_TYPE_FRAMEBUFFER_INFO   8
+#define MULTIBOOT_TAG_TYPE_ELF_SYMBOLS        9
+#define MULTIBOOT_TAG_TYPE_APM_TABLE          10
+#define MULTIBOOT_TAG_TYPE_EFI32_TP           11
+#define MULTIBOOT_TAG_TYPE_EFI64_TP           12
+#define MULTIBOOT_TAG_TYPE_SMBIOS             13
+#define MULTIBOOT_TAG_TYPE_ACPI_OLD           14
+#define MULTIBOOT_TAG_TYPE_ACPI_NEW           15
+#define MULTIBOOT_TAG_TYPE_NETWORK            16
+#define MULTIBOOT_TAG_TYPE_EFI_MMAP           17
+#define MULTIBOOT_TAG_TYPE_EFI_BOOT_SERVICE   18
+#define MULTIBOOT_TAG_TYPE_EFI32_IMAGE_HANDLE 19
+#define MULTIBOOT_TAG_TYPE_EFI64_IMAGE_HANDLE 20
+#define MULTIBOOT_TAG_TYPE_BASE_ADDRESS       21
 
 #ifndef __is_asm
-#include <stdint.h>
 #include <kernel/vga.h>
+#include <stdint.h>
 
 struct multiboot_tag_header {
     uint32_t type;
@@ -239,8 +239,9 @@ struct multiboot_boot_information {
     struct multiboot_load_base_addr **load_base_addr;
 };
 
-void load_multiboot_info(uint32_t magic, uint64_t addr, struct multiboot_boot_information*);
+void load_multiboot_info(uint32_t magic, uint64_t addr,
+                         struct multiboot_boot_information *);
 
-#endif // __is_asm
+#endif  // __is_asm
 
-#endif // KERNEL_MULTIBOOT2_H
+#endif  // KERNEL_MULTIBOOT2_H

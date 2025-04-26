@@ -22,13 +22,13 @@ void itoa(char *buf, unsigned int base, int d, bool caps) {
 
         *p = (remainder < 10) ? remainder + '0' : remainder + a - 10;
         p++;
-    } while ( ud /= base);
+    } while (ud /= base);
 
     // BUF should be a NULL terminated string
     *p = 0;
 
     // Reverse BUF
-    p2 = p-1;
+    p2 = p - 1;
     while (p1 < p2) {
         char tmp = *p1;
         *p1 = *p2;

@@ -1,18 +1,16 @@
 #include <cpuid.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
 #include <kernel/acpi.h>
+#include <kernel/arch/x86-64/apic.h>
+#include <kernel/arch/x86-64/interrupt.h>
 #include <kernel/kernel.h>
 #include <kernel/log.h>
 #include <kernel/memory/vm.h>
 #include <kernel/x86-64.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
-#include <kernel/arch/x86-64/apic.h>
-#include <kernel/arch/x86-64/interrupt.h>
-
-volatile void* lapic_base_address[MAX_CORES];
+volatile void *lapic_base_address[MAX_CORES];
 bool support_xapic2[MAX_CORES] = {0};
 
 void disable_pic() {
@@ -94,18 +92,19 @@ void write_icr(uint64_t value) {
 
 void send_ipi(uint32_t dest, ipi_command_t command) {
     uint32_t apic_id = get_apic_id();
-    uint64_t full_cmd = (uint64_t) command.raw;
-    if(support_xapic2[apic_id]) {
-        full_cmd |= (uint64_t) dest << 32;
+    uint64_t full_cmd = (uint64_t)command.raw;
+    if (support_xapic2[apic_id]) {
+        full_cmd |= (uint64_t)dest << 32;
     } else {
-        full_cmd |= (uint64_t) dest << 56;
+        full_cmd |= (uint64_t)dest << 56;
     }
     write_icr(full_cmd);
 
-    if(!support_xapic2[apic_id]) {
+    if (!support_xapic2[apic_id]) {
         do {
             __asm_pause();
-        } while (((ipi_command_t)(uint32_t)read_icr()).deliv_status); // wait for delivery
+        } while (((ipi_command_t)(uint32_t)read_icr())
+                     .deliv_status);  // wait for delivery
     }
 
     return;
@@ -117,16 +116,15 @@ void send_eoi() { write_lapic_register(LAPIC_REG_EOI, 0); }
 extern uint8_t vector_handler_0xFF;
 
 int enable_lapic(uint32_t apic_id) {
-    if (!check_lapic_availability(apic_id))
-        return 1;
+    if (!check_lapic_availability(apic_id)) return 1;
 
     disable_pic();
 
     uint64_t apic_base = rdmsr(IA32_APIC_BASE);
 
-    apic_base |= 0x800; // Make sure lapic is enabled
+    apic_base |= 0x800;  // Make sure lapic is enabled
 
-    if (support_xapic2[apic_id]) { // Always enable xapic2 if it is supported
+    if (support_xapic2[apic_id]) {  // Always enable xapic2 if it is supported
         apic_base |= (1 << 10);
     }
 
@@ -137,7 +135,8 @@ int enable_lapic(uint32_t apic_id) {
         lapic_base_address[apic_id] =
             map_mmio(NULL, apic_base & 0xFFFFF000, 0x400, true);
         if (lapic_base_address[apic_id] == NULL) {
-            logf(ERROR, "MMIO mapping for lapic registers failed for cpu %d", apic_id);
+            logf(ERROR, "MMIO mapping for lapic registers failed for cpu %d",
+                 apic_id);
             return 1;
         }
     }

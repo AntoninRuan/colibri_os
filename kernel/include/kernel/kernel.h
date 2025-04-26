@@ -13,9 +13,8 @@ static inline void disable_interrupt() { asm("cli"); }
 static inline void enable_interrupt() { asm("sti"); }
 #endif
 
-
 void panic(char *);
 void main();
 
-#endif // __is_asm
-#endif // KERNEL_H
+#endif  // __is_asm
+#endif  // KERNEL_H

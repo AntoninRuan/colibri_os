@@ -1,7 +1,6 @@
+#include <kernel/arch/i386/apic.h>
 #include <kernel/keyboard.h>
 #include <kernel/x86.h>
-#include <kernel/arch/i386/apic.h>
-
 
 extern void *interrupt_dispatch(struct interrupt_frame *context) {
     switch (context->vector_number) {

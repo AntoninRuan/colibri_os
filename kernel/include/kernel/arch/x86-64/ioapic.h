@@ -33,7 +33,7 @@ struct ic_lapic {
     uint8_t apic_id;
     uint32_t flags;
 };
-typedef struct ic_lapic ic_lapic_t ;
+typedef struct ic_lapic ic_lapic_t;
 
 struct ic_io_apic {
     struct ic_headers header;
@@ -54,16 +54,16 @@ struct madt {
 
 typedef union io_apic_redirect_entry_t {
     struct {
-        uint64_t vector           :8;  // bit 0..7
-        uint64_t delivery_mode    :3;  // bit 8..10
-        uint64_t destination_mode :1;  // bit 11
-        uint64_t delivery_status  :1;  // bit 12
-        uint64_t intpol           :1;  // bit 13
-        uint64_t remote_irr       :1;  // bit 14
-        uint64_t trigger_mode     :1;  // bit 15
-        uint64_t masked           :1;  // bit 16
-        uint64_t reserved         :39; // 17..55
-        uint64_t destination      :8;  // 56..64
+        uint64_t vector           : 8;   // bit 0..7
+        uint64_t delivery_mode    : 3;   // bit 8..10
+        uint64_t destination_mode : 1;   // bit 11
+        uint64_t delivery_status  : 1;   // bit 12
+        uint64_t intpol           : 1;   // bit 13
+        uint64_t remote_irr       : 1;   // bit 14
+        uint64_t trigger_mode     : 1;   // bit 15
+        uint64_t masked           : 1;   // bit 16
+        uint64_t reserved         : 39;  // 17..55
+        uint64_t destination      : 8;   // 56..64
     };
     uint64_t raw;
 } io_apic_redirect_entry_t;
@@ -71,4 +71,4 @@ typedef union io_apic_redirect_entry_t {
 int read_madt();
 int set_irq(uint8_t irq, uint8_t idt_entry, uint32_t flags, bool masked);
 
-#endif // IOAPIC_H
+#endif  // IOAPIC_H
