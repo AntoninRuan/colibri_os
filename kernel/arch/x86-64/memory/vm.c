@@ -24,6 +24,10 @@ void enable_nx_flag() {
     wrmsr(IA32_EFER, ia32_efer);
 }
 
+void disable_id_mapping() {
+    kernel_pml4[0].present = false;
+}
+
 void kvminit(struct multiboot_memory_map *mmap) {
     log(INFO, "Init virtual and physical memory");
     kernel_pml4 = (pml4e_t *)&pml4;
@@ -77,9 +81,6 @@ void kvminit(struct multiboot_memory_map *mmap) {
 
     init_phys_allocator(&ram_available);
     vmm_init(&kernel_vmm, kernel_pml4, 0, 0x800000000000, false);
-
-    // Remove identity mapping
-    // kernel_pml4[0].present = false;
 }
 
 uint64_t vmflag_to_x86flag(uint64_t flag) {

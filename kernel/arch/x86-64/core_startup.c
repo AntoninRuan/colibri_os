@@ -73,6 +73,7 @@ void init_ap() {
 
     release(&core_running_lock);
     millidelay(20);
+    disable_id_mapping();
     logf(INFO, "After startup they are %d CPU running", cpu_status.core_running);
 }
 

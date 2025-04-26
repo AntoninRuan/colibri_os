@@ -41,6 +41,7 @@
 - [x] Setup paging
 - [x] Add page allocator
 - [x] Virtual Memory Manager
+- [ ] Kernel Heap
 
 ## SMP
 
@@ -63,4 +64,7 @@
 - [x] Support multiboot2
 - [x] Replace gcc with clang for easier cross compiling
 - [x] Basic logging (maybe over serial port)
-- [x] Setup timers
+
+### Timer
+- [x] Setup HPET
+- [ ] Setup LAPIC timer

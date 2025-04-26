@@ -141,4 +141,6 @@ typedef union pte_t {
     uint64_t raw;
 } pte_t;
 
+void disable_id_mapping();
+
 #endif  // MEMORY_LAYOUT_x86_64_H
