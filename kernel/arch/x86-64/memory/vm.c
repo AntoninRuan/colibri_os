@@ -25,7 +25,7 @@ void enable_nx_flag() {
 }
 
 void disable_id_mapping() {
-    pde_t *kernel_p2 = (pde_t *) pd_va(0, 0);
+    pde_t *kernel_p2 = (pde_t *)pd_va(0, 0);
     kernel_p2->present = false;
 }
 

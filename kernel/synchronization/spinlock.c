@@ -17,7 +17,8 @@ void acquire(spinlock_t *lock) {
 
     if (holding(lock)) {
         if (log)
-            logf(ERROR, "CPU %d is already holding lock %s", get_cpu()->id, lock->name);
+            logf(ERROR, "CPU %d is already holding lock %s", get_cpu()->id,
+                 lock->name);
         panic("acquire");
     }
 
@@ -27,7 +28,8 @@ void acquire(spinlock_t *lock) {
     while (__atomic_test_and_set(&lock->held, __ATOMIC_ACQUIRE)) {
         if (nb_tries > WARNING && !warned) {
             if (log)
-                logf(WARNING, "CPU %d is waiting for lock %s", get_cpu()->id, lock->name);
+                logf(WARNING, "CPU %d is waiting for lock %s", get_cpu()->id,
+                     lock->name);
             warned = true;
         }
         nb_tries++;

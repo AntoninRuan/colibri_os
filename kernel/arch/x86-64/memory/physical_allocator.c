@@ -1,8 +1,8 @@
 #include <kernel/arch/x86-64/memory_layout.h>
 #include <kernel/kernel.h>
 #include <kernel/log.h>
-#include <kernel/sync.h>
 #include <kernel/memory/physical_allocator.h>
+#include <kernel/sync.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -17,9 +17,7 @@ uint64_t base;
 char *alloc;
 uint64_t alloc_size;
 page_lst free_lst = {0};
-spinlock_t phys_alloc_lock = {
-    .name = "Physical Allocator"
-};
+spinlock_t phys_alloc_lock = {.name = "Physical Allocator"};
 
 void lst_init(page_lst *lst) {
     lst->next = lst;
@@ -123,9 +121,7 @@ void kfree(void *page) {
     uint64_t index = page_index(addr);
     // Page is already free
 
-
-    if (!bit_isset(index))
-        return;
+    if (!bit_isset(index)) return;
 
     acquire(&phys_alloc_lock);
     lst_push(&free_lst, (void *)addr);

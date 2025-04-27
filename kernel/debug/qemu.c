@@ -6,9 +6,7 @@
 #include <kernel/x86-64.h>
 #endif
 
-spinlock_t qemu_serial_lock = {
-    .name = "QEMU serial"
-};
+spinlock_t qemu_serial_lock = {.name = "QEMU serial"};
 
 int init_qemu_serial() { return init_serial(QEMU_SERIAL_PORT); }
 

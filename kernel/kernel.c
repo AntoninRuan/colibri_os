@@ -1,3 +1,4 @@
+#include <kernel/arch/x86-64/hpet.h>
 #include <kernel/kernel.h>
 #include <kernel/log.h>
 #include <stdint.h>
@@ -13,20 +14,19 @@ cpu_status_t cpu_status[MAX_CORES] = {0};
 
 void push_off() {
     cpu_status_t *cpu = get_cpu();
-    if(cpu->int_on) {
+    if (cpu->int_on) {
         cpu->int_on = 0;
         disable_interrupt();
     }
 
-    cpu->push_off_count ++;
+    cpu->push_off_count++;
 }
 
 void pop_off() {
     cpu_status_t *cpu = get_cpu();
-    if(cpu->int_on)
-        panic("pop_off: cpu interrupt already on");
+    if (cpu->int_on) panic("pop_off: cpu interrupt already on");
 
-    cpu->push_off_count --;
+    cpu->push_off_count--;
     if (cpu->push_off_count == 0) {
         cpu->int_on = 1;
         enable_interrupt();

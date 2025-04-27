@@ -6,7 +6,6 @@
 #include <kernel/arch/x86-64/interrupt.h>
 #include <kernel/arch/x86-64/ioapic.h>
 #include <kernel/arch/x86-64/memory_layout.h>
-#include <kernel/arch/x86-64/hpet.h>
 #include <kernel/debug/qemu.h>
 #include <kernel/kernel.h>
 #include <kernel/keyboard.h>
@@ -23,20 +22,17 @@
 
 extern uint8_t ap_trampoline;
 extern uint8_t vector_handler_0x21;
-spinlock_t core_running_lock = {
-    .name = "Core Running"
-};
+spinlock_t core_running_lock = {.name = "Core Running"};
 
 void init_ap() {
     // load ap_trampoline at 0x8000 (physical)
     memcpy((void *)(0x8000 + PHYSICAL_OFFSET), &ap_trampoline, 4096);
 
     acquire(&core_running_lock);
-    kernel_status.core_running ++;
+    kernel_status.core_running++;
     for (uint32_t i = 0; i < kernel_status.core_available; i++) {
         // do not start BSP, that's already running this code
-        if (i == kernel_status.bsp_id)
-            continue;
+        if (i == kernel_status.bsp_id) continue;
         // send INIT IPI
         write_lapic_register(LAPIC_REG_ERROR_STATUS, 0);
         ipi_command_t ini = {
@@ -51,7 +47,7 @@ void init_ap() {
         ini.level = 0;
         send_ipi(i, ini);
 
-        millidelay(10); // wait 10 msec
+        millidelay(10);  // wait 10 msec
 
         // send STARTUP IPI (twice)
         ipi_command_t startup = {
@@ -61,14 +57,15 @@ void init_ap() {
         for (uint8_t j = 0; j < 2; j++) {
             write_lapic_register(LAPIC_REG_ERROR_STATUS, 0);
             send_ipi(i, startup);
-            nanodelay(200e3); // wait 200 usec
+            nanodelay(200e3);  // wait 200 usec
         }
     }
 
     release(&core_running_lock);
     millidelay(20);
     disable_id_mapping();
-    logf(INFO, "After startup there are %d CPU running", kernel_status.core_running);
+    logf(INFO, "After startup there are %d CPU running",
+         kernel_status.core_running);
 }
 
 void ap_startup(uint32_t apicid) {
@@ -78,7 +75,9 @@ void ap_startup(uint32_t apicid) {
     uint32_t nx_flag_supported = (edx & (1L << 20)) != 0;
     if (kernel_status.nx_flag_enabled) {
         if (!nx_flag_supported) {
-            panic("Error while setting up CPU %d, it does not suppord nx_flag but nx_flag is enabled on BPS");
+            panic(
+                "Error while setting up CPU %d, it does not suppord nx_flag "
+                "but nx_flag is enabled on BPS");
         } else {
             enable_nx_flag();
         }
@@ -88,7 +87,7 @@ void ap_startup(uint32_t apicid) {
     enable_lapic(apicid);
 
     acquire(&core_running_lock);
-    kernel_status.core_running ++;
+    kernel_status.core_running++;
     release(&core_running_lock);
 
     pop_off();
@@ -118,13 +117,11 @@ void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
 
     terminal_initialize((void *)&framebuffer->fb + PHYSICAL_OFFSET);
 
-    if (acpi_old)
-        load_rsdp((void *)&acpi_old->rsdp + PHYSICAL_OFFSET);
+    if (acpi_old) load_rsdp((void *)&acpi_old->rsdp + PHYSICAL_OFFSET);
 
-    if (acpi_new)
-        load_xsdp((void *)&acpi_new->rsdp + PHYSICAL_OFFSET);
+    if (acpi_new) load_xsdp((void *)&acpi_new->rsdp + PHYSICAL_OFFSET);
 
-    load_idt(); // Setup interrupts
+    load_idt();  // Setup interrupts
     enable_lapic(kernel_status.bsp_id);
     read_madt();
 

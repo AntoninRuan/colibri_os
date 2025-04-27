@@ -8,7 +8,7 @@ struct spinlock {
 
     // Debug value
     uint32_t cpu_id;
-    char* name;
+    char *name;
 };
 
 typedef struct spinlock spinlock_t;
@@ -16,4 +16,4 @@ typedef struct spinlock spinlock_t;
 void acquire(spinlock_t *);
 void release(spinlock_t *);
 
-#endif // SYNC_H
+#endif  // SYNC_H
