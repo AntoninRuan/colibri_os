@@ -23,7 +23,7 @@ void write_ioapic_register(uint8_t reg, uint32_t value) {
     *io_apic_win = value;
 }
 
-void write_ioapic_redirect(uint8_t index, io_apic_redirect_entry_t entry) {
+void write_ioapic_redirect(uint8_t index, io_apic_redirect_t entry) {
     if (index < 0x10 || index > 0x3F) return;
     if (index % 2) return;
 
@@ -34,18 +34,21 @@ void write_ioapic_redirect(uint8_t index, io_apic_redirect_entry_t entry) {
     write_ioapic_register(index + 1, high);
 }
 
-int set_irq(uint8_t irq, uint8_t idt_entry, uint32_t flags, bool masked) {
-    io_apic_redirect_entry_t entry;
+int set_irq(uint8_t irq, uint8_t idt_entry, uint8_t dest, uint8_t dest_mode,
+            bool masked) {
+    io_apic_redirect_t entry;
     entry.raw = read_ioapic_register(0x10 + (irq * 2));
     if (entry.vector != 0) {
         logf(ERROR, "IRQ %d is already mapped", irq);
         return -1;
     }
 
-    entry.raw = (uint64_t)(flags | (idt_entry & 0xFF));
+    entry.raw = (uint64_t)(idt_entry & 0xFF);
 
     // TODO multiple ioapic handling
 
+    entry.destination_mode = dest_mode;
+    entry.destination = dest;
     entry.masked = masked;
     write_ioapic_redirect(0x10 + (irq * 2), entry);
     return 0;

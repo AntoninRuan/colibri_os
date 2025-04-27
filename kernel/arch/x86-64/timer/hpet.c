@@ -2,6 +2,7 @@
 #include <kernel/arch/x86-64/hpet.h>
 #include <kernel/arch/x86-64/interrupt.h>
 #include <kernel/arch/x86-64/ioapic.h>
+#include <kernel/kernel.h>
 #include <kernel/log.h>
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
@@ -63,6 +64,7 @@ uint64_t poll_hpet() { return read_hpet_register(MAIN_COUNTER_VALUE_REG); }
 
 void sleep_polled_hpet(uint64_t femto) {
     uint64_t cycle = femto / hpet_period;
+    ;
     uint64_t main_counter = poll_hpet();
     uint64_t target = main_counter + cycle;
 
@@ -73,11 +75,8 @@ void sleep_polled_hpet(uint64_t femto) {
     return;
 }
 
-void nanodelay(uint64_t nano) { sleep_polled_hpet(nano * 10e6); }
-
-void millidelay(uint64_t milli) { nanodelay(milli * 10e6); }
-
 int arm_hpet_timer(uint8_t timer, uint64_t femto, bool periodic) {
+    push_off();
     if (timer >= timer_count) return 1;
     uint64_t cycle = femto / (uint64_t)hpet_period;
     timer_config_t config =
@@ -92,7 +91,8 @@ int arm_hpet_timer(uint8_t timer, uint64_t femto, bool periodic) {
                 irq_used++;
                 available_irq >>= 1;
             }
-            if (!set_irq(irq_used, 0x30 + timer, 0, false)) break;
+            if (!set_irq(irq_used, 0x30 + timer, DEST_LOGICAL, 0xFF, false))
+                break;
         }
         if (available_irq == 0) return 1;
         config.int_route_cnf = irq_used;
@@ -113,6 +113,7 @@ int arm_hpet_timer(uint8_t timer, uint64_t femto, bool periodic) {
     write_hpet_register(TIMER_COMPARATOR_REG(timer), poll_hpet() + cycle);
     if (periodic) write_hpet_register(TIMER_COMPARATOR_REG(timer), cycle);
 
+    pop_off();
     return 0;
 }
 

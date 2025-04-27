@@ -52,10 +52,12 @@ struct madt {
     uint8_t interrupt_controllers[];
 } __attribute__((packed));
 
-typedef union io_apic_redirect_entry_t {
+typedef union io_apic_redirect {
     struct {
-        uint64_t vector           : 8;   // bit 0..7
-        uint64_t delivery_mode    : 3;   // bit 8..10
+        uint64_t vector        : 8;  // bit 0..7
+        uint64_t delivery_mode : 3;  // bit 8..10
+#define DEST_PHYSICAL 0
+#define DEST_LOGICAL  1
         uint64_t destination_mode : 1;   // bit 11
         uint64_t delivery_status  : 1;   // bit 12
         uint64_t intpol           : 1;   // bit 13
@@ -66,9 +68,10 @@ typedef union io_apic_redirect_entry_t {
         uint64_t destination      : 8;   // 56..64
     };
     uint64_t raw;
-} io_apic_redirect_entry_t;
+} io_apic_redirect_t;
 
 int read_madt();
-int set_irq(uint8_t irq, uint8_t idt_entry, uint32_t flags, bool masked);
+int set_irq(uint8_t irq, uint8_t idt_entry, uint8_t dest, uint8_t dest_mode,
+            bool masked);
 
 #endif  // IOAPIC_H

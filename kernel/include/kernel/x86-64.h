@@ -3,12 +3,12 @@
 
 #include <stdint.h>
 
-#define IRQ_PIT           0x0
-#define IRQ_KEYBOARD      0x1
-#define IRQ_HPET_TIMER(n) (0x30 + n)
+#define IRQ_PIT      0x0
+#define IRQ_KEYBOARD 0x1
 
 #define IRQ_VECTOR_PIT      0X20
 #define IRQ_VECTOR_KEYBOARD 0X21
+#define IRQ_HPET_TIMER(n)   (0x30 + n)
 
 #define GDT_ENTRY_KERNEL_CODE 0x8
 #define GDT_ENTRY_KERNEL_DATA 0x10
@@ -33,6 +33,8 @@
 #define ALIGNMENT_CHECK        17
 #define MACHINE_CHECK          18
 #define SIMD_ERROR             19
+
+#define APIC_TIMER_INTERRUPT 0x40
 
 #define IA32_EFER 0xC0000080
 

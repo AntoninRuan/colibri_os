@@ -14,8 +14,6 @@ bool holding(spinlock_t *lock) {
 void acquire(spinlock_t *lock) {
     push_off();
     bool log = memcmp(lock->name, "QEMU serial", strlen("QEMU serial"));
-    if (log)
-        logf(DEBUG, "Acquiring %s", lock->name);
 
     if (holding(lock)) {
         if (log)
@@ -48,7 +46,4 @@ void release(spinlock_t *lock) {
     __atomic_clear(&lock->held, __ATOMIC_RELEASE);
 
     pop_off();
-
-    if (memcmp(lock->name, "QEMU serial", strlen("QEMU serial")))
-        logf(DEBUG, "Released %s", lock->name);
 }

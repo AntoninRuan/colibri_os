@@ -1,24 +1,24 @@
 #include <cpuid.h>
-#include <kernel/arch/x86-64/memory_layout.h>
-#include <kernel/timer.h>
-#include <stdint.h>
-#include <stdio.h>
-
 #include <kernel/acpi.h>
+#include <kernel/arch/x86-64/apic.h>
+#include <kernel/arch/x86-64/apic_timer.h>
+#include <kernel/arch/x86-64/hpet.h>
+#include <kernel/arch/x86-64/interrupt.h>
+#include <kernel/arch/x86-64/ioapic.h>
+#include <kernel/arch/x86-64/memory_layout.h>
+#include <kernel/arch/x86-64/hpet.h>
+#include <kernel/debug/qemu.h>
 #include <kernel/kernel.h>
 #include <kernel/keyboard.h>
 #include <kernel/log.h>
 #include <kernel/memory/vm.h>
 #include <kernel/multiboot2.h>
-#include <kernel/tty.h>
 #include <kernel/sync.h>
+#include <kernel/timer.h>
+#include <kernel/tty.h>
 #include <kernel/x86-64.h>
-
-#include <kernel/arch/x86-64/apic.h>
-#include <kernel/arch/x86-64/hpet.h>
-#include <kernel/arch/x86-64/interrupt.h>
-#include <kernel/arch/x86-64/ioapic.h>
-#include <kernel/debug/qemu.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 extern uint8_t ap_trampoline;
@@ -137,7 +137,7 @@ void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
     set_idt_entry(IRQ_VECTOR_KEYBOARD, (uint64_t)&vector_handler_0x21,
                   GDT_ENTRY_KERNEL_CODE, FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE));
 
-    set_irq(IRQ_KEYBOARD, IRQ_VECTOR_KEYBOARD, 0, false);
+    set_irq(IRQ_KEYBOARD, IRQ_VECTOR_KEYBOARD, DEST_PHYSICAL, 0, false);
 
     pop_off();
     main();

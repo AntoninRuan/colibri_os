@@ -26,6 +26,9 @@ extern void *interrupt_dispatch(struct interrupt_frame *context) {
         case IRQ_HPET_TIMER(0):
             log(DEBUG, "PING");
             break;
+        case APIC_TIMER_INTERRUPT:
+            log(DEBUG, "PING (apic)");
+            break;
 
         default:
             break;

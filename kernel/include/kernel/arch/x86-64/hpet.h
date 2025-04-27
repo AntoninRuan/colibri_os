@@ -65,6 +65,8 @@ typedef union timer_config timer_config_t;
 
 #define HPET_BASE_INT_VEC 0x30
 
+void sleep_polled_hpet(uint64_t femto);
+int arm_hpet_timer(uint8_t timer, uint64_t femto, bool periodic);
 int setup_hpet();
 
 #endif  // HPET_H

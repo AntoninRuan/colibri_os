@@ -130,5 +130,7 @@ vector_handler_\vec_num:
     vector_no_err 0x3D
     vector_no_err 0x3E
     vector_no_err 0x3F
+    // APIC timer
+    vector_no_err 0x40
 
     vector_no_err 0xFF          // APIC Spurious vector
