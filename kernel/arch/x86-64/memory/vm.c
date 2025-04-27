@@ -25,7 +25,8 @@ void enable_nx_flag() {
 }
 
 void disable_id_mapping() {
-    kernel_pml4[0].present = false;
+    pde_t *kernel_p2 = (pde_t *) pd_va(0, 0);
+    kernel_p2->present = false;
 }
 
 void kvminit(struct multiboot_memory_map *mmap) {
@@ -34,16 +35,16 @@ void kvminit(struct multiboot_memory_map *mmap) {
 
     unsigned int eax, ebx, ecx, edx;
     __get_cpuid(0x80000001, &eax, &ebx, &ecx, &edx);
-    cpu_status.nx_flag_enabled = (edx & (1L << 20)) != 0;
+    kernel_status.nx_flag_enabled = (edx & (1L << 20)) != 0;
     big_page_size_supported = (edx & (1L << 26)) != 0;
 
-    if (cpu_status.nx_flag_enabled) enable_nx_flag();
+    if (kernel_status.nx_flag_enabled) enable_nx_flag();
 
     pml4e_t physical_entry = {0};
     physical_entry.raw = (uint64_t)(PHYSICAL_ADDRESS(physical_mapping));
     physical_entry.present = true;
     physical_entry.writable = true;
-    physical_entry.xd = cpu_status.nx_flag_enabled;
+    physical_entry.xd = kernel_status.nx_flag_enabled;
     ((pml4e_t *)(pdpt_va(PML4_RECURSE_ENTRY)))[509] = physical_entry;
 
     // Determine RAM area
@@ -74,18 +75,18 @@ void kvminit(struct multiboot_memory_map *mmap) {
         entry.raw = (uint64_t)BIG_PAGE_SIZE * i;
         entry.present = true;
         entry.writable = true;
-        entry.xd = cpu_status.nx_flag_enabled;
+        entry.xd = kernel_status.nx_flag_enabled;
         entry.page_size = 1;
         physical_mapping[i] = entry;
     }
 
     init_phys_allocator(&ram_available);
-    vmm_init(&kernel_vmm, kernel_pml4, 0, 0x800000000000, false);
+    vmm_init(&kernel_vmm, kernel_pml4, 0, 0x800000000000, false, NULL);
 }
 
 uint64_t vmflag_to_x86flag(uint64_t flag) {
     uint64_t result = 0;
-    if (cpu_status.nx_flag_enabled && !(flag & MEMORY_FLAG_EXEC)) {
+    if (kernel_status.nx_flag_enabled && !(flag & MEMORY_FLAG_EXEC)) {
         result |= 1L << 63;
     }
     result |= (flag & (MEMORY_FLAG_WRITE | MEMORY_FLAG_USER)) << 1;
@@ -202,7 +203,10 @@ void *map_mmio(vmm_info_t *vmm, uint64_t physical, size_t size, bool writable) {
     memory_area_t *area = vmm_alloc_at(BIG_PAGE_SIZE, vmm, size, flag);
     int result = mappages(vmm->root_pagetable, (void *)area->start, area->size,
                           (void *)physical, area->flags);
-    if (result) return NULL;
+    if (result) {
+        logf(ERROR, "Error while mapping IO");
+        return NULL;
+    };
 
     return (void *)area->start;
 }

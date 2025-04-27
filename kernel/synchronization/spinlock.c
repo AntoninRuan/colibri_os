@@ -3,18 +3,23 @@
 #include <kernel/sync.h>
 #include <math.h>
 #include <stdbool.h>
+#include <string.h>
 
 spinlock_t spinlocks[512] = {0};
 
 bool holding(spinlock_t *lock) {
-    return (lock->held && lock->cpu_id == get_cpu_id());
+    return (lock->held && lock->cpu_id == get_cpu()->id);
 }
 
 void acquire(spinlock_t *lock) {
-    disable_interrupt();
+    push_off();
+    bool log = memcmp(lock->name, "QEMU serial", strlen("QEMU serial"));
+    if (log)
+        logf(DEBUG, "Acquiring %s", lock->name);
 
     if (holding(lock)) {
-        logf(ERROR, "CPU %d is already holding lock %s", get_cpu_id(), lock->name);
+        if (log)
+            logf(ERROR, "CPU %d is already holding lock %s", get_cpu()->id, lock->name);
         panic("acquire");
     }
 
@@ -23,13 +28,14 @@ void acquire(spinlock_t *lock) {
     bool warned = false;
     while (__atomic_test_and_set(&lock->held, __ATOMIC_ACQUIRE)) {
         if (nb_tries > WARNING && !warned) {
-            logf(WARNING, "CPU %d is waiting for lock %s", get_cpu_id(), lock->name);
+            if (log)
+                logf(WARNING, "CPU %d is waiting for lock %s", get_cpu()->id, lock->name);
             warned = true;
         }
         nb_tries++;
     }
 
-    lock->cpu_id = get_cpu_id();
+    lock->cpu_id = get_cpu()->id;
 }
 
 void release(spinlock_t *lock) {
@@ -41,5 +47,8 @@ void release(spinlock_t *lock) {
 
     __atomic_clear(&lock->held, __ATOMIC_RELEASE);
 
-    enable_interrupt();
+    pop_off();
+
+    if (memcmp(lock->name, "QEMU serial", strlen("QEMU serial")))
+        logf(DEBUG, "Released %s", lock->name);
 }

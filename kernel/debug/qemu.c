@@ -7,7 +7,6 @@
 #endif
 
 spinlock_t qemu_serial_lock = {
-    .held = 0,
     .name = "QEMU serial"
 };
 

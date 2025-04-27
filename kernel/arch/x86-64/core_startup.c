@@ -27,21 +27,15 @@ spinlock_t core_running_lock = {
     .name = "Core Running"
 };
 
-cpu_status_t cpu_status = {
-    .bsp_id = MAX_CORES + 1,
-    .core_available = 0,
-    .core_running = 0,
-};
-
 void init_ap() {
     // load ap_trampoline at 0x8000 (physical)
     memcpy((void *)(0x8000 + PHYSICAL_OFFSET), &ap_trampoline, 4096);
 
     acquire(&core_running_lock);
-    cpu_status.core_running ++;
-    for (uint32_t i = 0; i < cpu_status.core_available; i++) {
+    kernel_status.core_running ++;
+    for (uint32_t i = 0; i < kernel_status.core_available; i++) {
         // do not start BSP, that's already running this code
-        if (i == cpu_status.bsp_id)
+        if (i == kernel_status.bsp_id)
             continue;
         // send INIT IPI
         write_lapic_register(LAPIC_REG_ERROR_STATUS, 0);
@@ -74,14 +68,15 @@ void init_ap() {
     release(&core_running_lock);
     millidelay(20);
     disable_id_mapping();
-    logf(INFO, "After startup they are %d CPU running", cpu_status.core_running);
+    logf(INFO, "After startup there are %d CPU running", kernel_status.core_running);
 }
 
 void ap_startup(uint32_t apicid) {
+    push_off();
     unsigned int eax, ebx, ecx, edx;
     __get_cpuid(0x80000001, &eax, &ebx, &ecx, &edx);
     uint32_t nx_flag_supported = (edx & (1L << 20)) != 0;
-    if (cpu_status.nx_flag_enabled) {
+    if (kernel_status.nx_flag_enabled) {
         if (!nx_flag_supported) {
             panic("Error while setting up CPU %d, it does not suppord nx_flag but nx_flag is enabled on BPS");
         } else {
@@ -93,17 +88,18 @@ void ap_startup(uint32_t apicid) {
     enable_lapic(apicid);
 
     acquire(&core_running_lock);
-    cpu_status.core_running ++;
+    kernel_status.core_running ++;
     release(&core_running_lock);
 
-    asm("sti");
+    pop_off();
     main();
 }
 
 void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
+    push_off();
     init_qemu_serial();
-    cpu_status.bsp_id = apicid;
-    logf(INFO, "BSP id is %d", cpu_status.bsp_id);
+    kernel_status.bsp_id = apicid;
+    logf(INFO, "BSP id is %d", kernel_status.bsp_id);
     struct multiboot_memory_map *memory_map = NULL;
     struct multiboot_framebuffer *framebuffer = NULL;
     struct multiboot_acpi_old *acpi_old = NULL;
@@ -129,7 +125,7 @@ void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
         load_xsdp((void *)&acpi_new->rsdp + PHYSICAL_OFFSET);
 
     load_idt(); // Setup interrupts
-    enable_lapic(cpu_status.bsp_id);
+    enable_lapic(kernel_status.bsp_id);
     read_madt();
 
     setup_hpet();
@@ -143,6 +139,6 @@ void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
 
     set_irq(IRQ_KEYBOARD, IRQ_VECTOR_KEYBOARD, 0, false);
 
-    asm("sti");
+    pop_off();
     main();
 }

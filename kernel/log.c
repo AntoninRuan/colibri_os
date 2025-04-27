@@ -1,4 +1,5 @@
 #include <kernel/debug/qemu.h>
+#include <kernel/kernel.h>
 #include <kernel/log.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -19,7 +20,7 @@ void disable_tty_log() { log_tty = false; }
 void log(log_level_t level, const char *msg) {
     if (!(log_qemu || log_tty)) return;
     char prefix[32] = {0};
-    sprintf(prefix, "[%s]: ", level_prefix[level]);
+    sprintf(prefix, "[CPU #%d] [%s]: ", get_cpu()->id, level_prefix[level]);
     if (log_qemu) {
         char fmsg[200] = {0};
         sprintf(fmsg, "%s%s\n", prefix, msg);

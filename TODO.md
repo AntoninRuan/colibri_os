@@ -26,8 +26,8 @@
 
 ## Scheduling
 
-- [ ] Start userspace programs
 - [ ] Implement a scheduler
+- [ ] Start userspace programs
 
 ## Interrupts
 

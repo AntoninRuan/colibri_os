@@ -18,8 +18,6 @@ char *alloc;
 uint64_t alloc_size;
 page_lst free_lst = {0};
 spinlock_t phys_alloc_lock = {
-    .held = 0,
-    .cpu_id = 0,
     .name = "Physical Allocator"
 };
 

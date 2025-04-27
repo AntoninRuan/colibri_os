@@ -157,11 +157,12 @@ kernel64:
     movq %rax, %cr0
 
 bsp_detection:
-    // We want to check if are running on bsp or not
+    // We want to check if we are booting the first cpu (the BSP
+    // Or another one (an AP)
     xorq %rax, %rax
-    movl cpu_status, %eax
-    cmp $MAX_CORES, %eax
-    jae bsp_init
+    movl kernel_status, %eax
+    cmp $0, %eax
+    je bsp_init
 
 ap_init:
     movq %rbx, %rdi

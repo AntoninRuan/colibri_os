@@ -63,7 +63,7 @@ int read_madt() {
             case IC_TYPE_LAPIC:
                 ic_lapic_t *lapic = (ic_lapic_t *)header;
                 if (lapic->flags & 1) {
-                    cpu_status.core_available++;
+                    kernel_status.core_available++;
                 }
                 break;
             case IC_TYPE_IO_APIC:
@@ -86,8 +86,8 @@ int read_madt() {
         }
     }
 
-    if (cpu_status.core_available > MAX_CORES)
-        cpu_status.core_available = MAX_CORES;
+    if (kernel_status.core_available > MAX_CORES)
+        kernel_status.core_available = MAX_CORES;
 
     return 0;
 }

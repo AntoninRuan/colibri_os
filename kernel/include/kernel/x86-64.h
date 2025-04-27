@@ -90,17 +90,6 @@ struct interrupt_frame {
     uint64_t iret_ss;
 };
 
-struct cpu_status {
-    uint32_t bsp_id;
-    uint32_t core_available;
-
-    uint32_t core_running;
-    bool nx_flag_enabled;
-};
-typedef struct cpu_status cpu_status_t;
-
-extern cpu_status_t cpu_status;
-
 static inline void outb(uint16_t port, uint8_t value) {
     asm volatile("outb %b0, %w1" : : "a"(value), "Nd"(port) : "memory");
 }
