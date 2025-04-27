@@ -2,6 +2,7 @@
 #include <kernel/arch/x86-64/memory_layout.h>
 #include <kernel/kernel.h>
 #include <kernel/log.h>
+#include <kernel/memory/heap.h>
 #include <kernel/memory/physical_allocator.h>
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
@@ -200,7 +201,7 @@ void *map_mmio(vmm_info_t *vmm, uint64_t physical, size_t size, bool writable) {
     uint8_t flag = 0;
     if (writable) flag |= MEMORY_FLAG_WRITE;
     if (vmm->user_vmm) flag |= MEMORY_FLAG_USER;
-    memory_area_t *area = vmm_alloc_at(BIG_PAGE_SIZE, vmm, size, flag);
+    memory_area_t *area = vmm_alloc_at(64L * BIG_PAGE_SIZE, vmm, size, flag);
     int result = mappages(vmm->root_pagetable, (void *)area->start, area->size,
                           (void *)physical, area->flags);
     if (result) {

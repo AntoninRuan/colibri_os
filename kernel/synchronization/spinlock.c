@@ -39,8 +39,6 @@ void acquire(spinlock_t *lock) {
 }
 
 void release(spinlock_t *lock) {
-    disable_interrupt();
-
     lock->cpu_id = 0;
 
     __atomic_thread_fence(__ATOMIC_ACQ_REL);

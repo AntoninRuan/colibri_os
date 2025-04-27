@@ -13,9 +13,9 @@ struct page_lst {
 
 typedef struct page_lst page_lst;
 
-uint64_t base;
-char *alloc;
-uint64_t alloc_size;
+static uint64_t base;
+static char *alloc;
+static uint64_t alloc_size;
 page_lst free_lst = {0};
 spinlock_t phys_alloc_lock = {.name = "Physical Allocator"};
 

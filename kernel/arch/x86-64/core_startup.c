@@ -10,6 +10,7 @@
 #include <kernel/kernel.h>
 #include <kernel/keyboard.h>
 #include <kernel/log.h>
+#include <kernel/memory/heap.h>
 #include <kernel/memory/vm.h>
 #include <kernel/multiboot2.h>
 #include <kernel/sync.h>
@@ -135,6 +136,12 @@ void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
                   GDT_ENTRY_KERNEL_CODE, FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE));
 
     set_irq(IRQ_KEYBOARD, IRQ_VECTOR_KEYBOARD, DEST_PHYSICAL, 0, false);
+
+    memory_area_t *area = vmm_alloc_at(BIG_PAGE_SIZE, &kernel_vmm,
+                                       2 * PAGE_SIZE, MEMORY_FLAG_WRITE);
+    if (!area) panic("Could not allocate memory for kernel heap");
+    kernel_heap = (heap_node_t *)area->start;
+    init_heap(kernel_heap, area->size);
 
     pop_off();
     main();

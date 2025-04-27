@@ -17,9 +17,10 @@ void vmm_init(vmm_info_t *vmm, void *pagetable, uintptr_t start, uintptr_t end,
     vmm->root_pagetable = pagetable;
     vmm->user_vmm = user;
 
-    vmm->vmm_start = start + PAGE_SIZE;
+    vmm->vmm_start = PAGE_START(start, PAGE_SIZE);
+    if (vmm->vmm_start == 0) vmm->vmm_start += PAGE_SIZE;
     vmm->vmm_data_start = vmm->vmm_start;
-    vmm->vmm_data_end = end;
+    vmm->vmm_data_end = PAGE_END(end, PAGE_SIZE) + 1;
 
     if (vmm != &kernel_vmm)
         vmm->lock = lock;
@@ -60,6 +61,7 @@ memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, uint64_t sz,
         low_bound = PAGE_END(vmm->current_addr, PAGE_SIZE) + 1;
 
     found = low_bound;
+    base = PAGE_END(base, SMALL_PAGE_SIZE) + 1;
     if (found < base) found = base;
     if (found + length > high_bound) {
         // In case the last given address is too high, search for memory avaible
@@ -183,12 +185,13 @@ int vmm_free(vmm_info_t *vmm, memory_area_t *area) {
 }
 
 int on_demand_allocation(void *va) {
-    void *page = kalloc();
     memory_area_t *area = get_memory_area(current_vmm, va);
     if (area == NULL) {
         // va is not an allocated address for current vmm
         return -1;
     }
+
+    void *page = kalloc();
     mappages(current_vmm->root_pagetable, va, PAGE_SIZE, page, area->flags);
     return 0;
 }

@@ -21,6 +21,7 @@
 ### File system
 
 - [ ] Parsing ELF files
+- [ ] VFS
 - [ ] Driver for fat32
 - [ ] Driver for ext4
 
@@ -41,7 +42,7 @@
 - [x] Setup paging
 - [x] Add page allocator
 - [x] Virtual Memory Manager
-- [ ] Kernel Heap
+- [x] Kernel Heap
 
 ## SMP
 
@@ -67,4 +68,4 @@
 
 ### Timer
 - [x] Setup HPET
-- [ ] Setup LAPIC timer
+- [x] Setup LAPIC timer
