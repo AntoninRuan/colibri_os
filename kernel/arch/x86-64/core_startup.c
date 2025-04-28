@@ -64,7 +64,6 @@ void init_ap() {
 
     release(&core_running_lock);
     millidelay(20);
-    disable_id_mapping();
     logf(INFO, "After startup there are %d CPU running",
          kernel_status.core_running);
 }
@@ -116,8 +115,6 @@ void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
 
     kvminit(memory_map);
 
-    terminal_initialize((void *)&framebuffer->fb + PHYSICAL_OFFSET);
-
     if (acpi_old) load_rsdp((void *)&acpi_old->rsdp + PHYSICAL_OFFSET);
 
     if (acpi_new) load_xsdp((void *)&acpi_new->rsdp + PHYSICAL_OFFSET);
@@ -129,6 +126,8 @@ void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
     setup_hpet();
 
     init_ap();
+
+    disable_id_mapping();
 
     // Enable keyboard support
     init_keyboard();
@@ -142,6 +141,8 @@ void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
     if (!area) panic("Could not allocate memory for kernel heap");
     kernel_heap = (heap_node_t *)area->start;
     init_heap(kernel_heap, area->size);
+
+    terminal_initialize((void *)&framebuffer->fb + PHYSICAL_OFFSET);
 
     pop_off();
     main();

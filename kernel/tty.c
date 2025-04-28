@@ -1,4 +1,5 @@
 #include <kernel/log.h>
+#include <kernel/memory/heap.h>
 #include <kernel/memory/vm.h>
 #include <kernel/pc_font.h>
 #include <kernel/tty.h>
@@ -18,6 +19,7 @@ uint8_t *font_start;
 size_t TERMINAL_WIDTH, TERMINAL_HEIGHT;
 size_t row, column;
 uint16_t fg, bg;
+char *tty_buffer;
 
 int terminal_initialize(struct framebuffer *fb) {
     memcpy(&display, fb, sizeof(struct framebuffer));
@@ -42,6 +44,8 @@ int terminal_initialize(struct framebuffer *fb) {
     fg = (uint16_t)0xFFFFFF;
     bg = 0;
 
+    tty_buffer = alloc(NULL, TERMINAL_HEIGHT * (TERMINAL_WIDTH + 1));
+
     return terminal_clear();
 }
 
@@ -50,17 +54,13 @@ int terminal_clear() {
         return 1;
     }
 
+    memset(tty_buffer, 0, TERMINAL_HEIGHT * (TERMINAL_WIDTH + 1));
     memset((char *)display.addr, 0, display.pitch * display.height);
     return 0;
 }
 
 // TODO support other bpp than 32
-void terminal_putchar(uint8_t c) {
-    if (column == TERMINAL_WIDTH) terminal_return();
-
-    uint64_t row_offset = (row * (font->height + 1) * display.pitch);
-    uint64_t column_offset = (column * (font->width + 1) * (display.bpp / 8));
-
+void terminal_render_char(size_t x_org, size_t y_org, char c) {
     uint8_t *font_char = font_start + (c * font->bytesperglyph);
 
     uint8_t bitmap_offset;
@@ -71,9 +71,8 @@ void terminal_putchar(uint8_t c) {
             for (uint8_t i = 0; i < 8; i++) {
                 if ((x + i) >= font->width) break;
 
-                uint32_t *index =
-                    (uint32_t *)(display.addr + row_offset + column_offset +
-                                 (x + i) * (display.bpp / 8));
+                uint32_t *index = (uint32_t *)(display.addr + y_org + x_org +
+                                               (x + i) * (display.bpp / 8));
 
                 if (font_char[bitmap_offset] & (0x80 >> i))
                     *index = fg;
@@ -82,19 +81,60 @@ void terminal_putchar(uint8_t c) {
             }
             bitmap_offset++;
         }
-        row_offset += display.pitch;
+        y_org += display.pitch;
+    }
+}
+
+void terminal_render() {
+    size_t x, y;
+    for (y = 0; y < TERMINAL_HEIGHT; y++) {
+        for (x = 0; x < TERMINAL_WIDTH; x++) {
+            uint64_t y0 = (y * (font->height + 1) * display.pitch);
+            uint64_t x0 = (x * (font->width + 1) * (display.bpp / 8));
+            char c = tty_buffer[x + y * (TERMINAL_WIDTH + 1)];
+
+            if (0x20 <= c && c < 0x7F) {
+                // Printable character
+                terminal_render_char(x0, y0, c);
+                continue;
+            }
+
+            if (c == '\0' || c == '\n') {
+                c = ' ';
+            }
+
+            terminal_render_char(x0, y0, c);
+        }
+    }
+}
+
+void terminal_putchar(uint8_t c) {
+    if (column == TERMINAL_WIDTH) {
+        terminal_return();
     }
 
+    tty_buffer[column + row * (TERMINAL_WIDTH + 1)] = c;
+
     column++;
-    // if (++ column == TERMINAL_WIDTH) {
-    //     terminal_return();
-    // }
+}
+
+void terminal_move_up() {
+    size_t y;
+    for (y = 1; y < TERMINAL_HEIGHT; y++) {
+        memcpy(&tty_buffer[(y - 1) * (TERMINAL_WIDTH + 1)],
+               &tty_buffer[y * (TERMINAL_WIDTH + 1)], TERMINAL_WIDTH + 1);
+    }
+
+    memset(&tty_buffer[(y - 1) * (TERMINAL_WIDTH + 1)], 0, TERMINAL_WIDTH + 1);
+
+    terminal_render();
 }
 
 void terminal_return() {
+    tty_buffer[column + row * (TERMINAL_WIDTH + 1)] = '\n';
     if (++row == TERMINAL_HEIGHT) {
-        terminal_clear();
-        row = 0;
+        terminal_move_up();
+        row--;
     }
     column = 0;
 }
@@ -102,11 +142,13 @@ void terminal_return() {
 void terminal_backspace() {
     if (column != 0) {
         column--;
-        terminal_putchar(' ');
+        terminal_putchar('\0');
         column--;
     } else if (row != 0) {
-        column = TERMINAL_WIDTH;
         row--;
+        column = 0;
+        while (tty_buffer[column + row * (TERMINAL_WIDTH - 1)] != '\n')
+            column++;
     }
 }
 
@@ -117,23 +159,26 @@ void terminal_write(uint8_t data) {
 
     if (0x20 <= data && data < 0x7F) {
         terminal_putchar(data);
-        return;
     }
 
     switch (data) {
         case '\b':
             terminal_backspace();
+            tty_buffer[column + row * (TERMINAL_WIDTH + 1)] = '\0';
             break;
         case '\t':
             // TODO add support for \t
             break;
         case '\n':
+            tty_buffer[column + row * (TERMINAL_WIDTH + 1)] = data;
             terminal_return();
             break;
 
         default:
             break;
     }
+
+    terminal_render();
 }
 
 void terminal_writestring(const char *data) {

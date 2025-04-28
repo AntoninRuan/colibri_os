@@ -15,8 +15,8 @@
 
 ### Terminal display
 
-- [ ] Make line goes up one row each rather than going back to the top
-- [ ] Support deletion of newline
+- [x] Make line goes up one row each rather than going back to the top
+- [x] Support deletion of newline
 
 ### File system
 
