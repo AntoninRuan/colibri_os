@@ -10,30 +10,30 @@
 #include <stdint.h>
 #include <string.h>
 
-extern uint8_t _binary_font_psfu_start;
-extern uint8_t _binary_font_psfu_end;
+extern u8 _binary_font_psfu_start;
+extern u8 _binary_font_psfu_end;
 
 struct framebuffer display = {0};
 const struct pc_font *font = (struct pc_font *)&_binary_font_psfu_start;
-uint8_t *font_start;
+u8 *font_start;
 size_t TERMINAL_WIDTH, TERMINAL_HEIGHT;
 size_t row, column;
-uint16_t fg, bg;
+u16 fg, bg;
 char *tty_buffer;
 
 int terminal_initialize(struct framebuffer *fb) {
     memcpy(&display, fb, sizeof(struct framebuffer));
     // display.addr is still a physical address
     // asking to map it to a virtual one
-    uint64_t vaddr = (uint64_t)map_mmio(NULL, display.addr,
-                                        display.pitch * display.height, true);
+    u64 vaddr =
+        (u64)map_mmio(NULL, display.addr, display.pitch * display.height, true);
     if (vaddr == 0) {
         logf(ERROR, "MMIO mapping for terminal buffer failed");
         return 1;
     }
     display.addr = vaddr;
 
-    font_start = (uint8_t *)(&_binary_font_psfu_start + font->headersize);
+    font_start = (u8 *)(&_binary_font_psfu_start + font->headersize);
 
     TERMINAL_HEIGHT = display.height / (font->height + 1);
     TERMINAL_WIDTH = display.width / (font->width + 1);
@@ -41,7 +41,7 @@ int terminal_initialize(struct framebuffer *fb) {
     row = 0;
     column = 0;
 
-    fg = (uint16_t)0xFFFFFF;
+    fg = (u16)0xFFFFFF;
     bg = 0;
 
     tty_buffer = alloc(NULL, TERMINAL_HEIGHT * (TERMINAL_WIDTH + 1));
@@ -61,18 +61,18 @@ int terminal_clear() {
 
 // TODO support other bpp than 32
 void terminal_render_char(size_t x_org, size_t y_org, char c) {
-    uint8_t *font_char = font_start + (c * font->bytesperglyph);
+    u8 *font_char = font_start + (c * font->bytesperglyph);
 
-    uint8_t bitmap_offset;
-    for (uint32_t y = 0; y < font->height; y++) {
+    u8 bitmap_offset;
+    for (u32 y = 0; y < font->height; y++) {
         bitmap_offset = ceildiv(font->width, 8) * y;
 
-        for (uint32_t x = 0; x < font->width; x += 8) {
-            for (uint8_t i = 0; i < 8; i++) {
+        for (u32 x = 0; x < font->width; x += 8) {
+            for (u8 i = 0; i < 8; i++) {
                 if ((x + i) >= font->width) break;
 
-                uint32_t *index = (uint32_t *)(display.addr + y_org + x_org +
-                                               (x + i) * (display.bpp / 8));
+                u32 *index = (u32 *)(display.addr + y_org + x_org +
+                                     (x + i) * (display.bpp / 8));
 
                 if (font_char[bitmap_offset] & (0x80 >> i))
                     *index = fg;
@@ -89,8 +89,8 @@ void terminal_render() {
     size_t x, y;
     for (y = 0; y < TERMINAL_HEIGHT; y++) {
         for (x = 0; x < TERMINAL_WIDTH; x++) {
-            uint64_t y0 = (y * (font->height + 1) * display.pitch);
-            uint64_t x0 = (x * (font->width + 1) * (display.bpp / 8));
+            u64 y0 = (y * (font->height + 1) * display.pitch);
+            u64 x0 = (x * (font->width + 1) * (display.bpp / 8));
             char c = tty_buffer[x + y * (TERMINAL_WIDTH + 1)];
 
             if (0x20 <= c && c < 0x7F) {
@@ -108,7 +108,7 @@ void terminal_render() {
     }
 }
 
-void terminal_putchar(uint8_t c) {
+void terminal_putchar(u8 c) {
     if (column == TERMINAL_WIDTH) {
         terminal_return();
     }
@@ -152,7 +152,7 @@ void terminal_backspace() {
     }
 }
 
-void terminal_write(uint8_t data) {
+void terminal_write(u8 data) {
     if (display.addr == 0) {
         return;
     }

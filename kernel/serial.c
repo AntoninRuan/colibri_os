@@ -1,7 +1,7 @@
 #include <kernel/serial.h>
 #include <kernel/x86-64.h>
 
-int init_serial(uint16_t port) {
+int init_serial(u16 port) {
     outb(port + 1, 0x00);  // Disable all interrupts
     outb(port + 3, 0x80);  // Enable DLAB (set baud rate divisor)
     outb(port + 0, 0x0C);  // Set divisor to 3 (lo byte) 38400 baud

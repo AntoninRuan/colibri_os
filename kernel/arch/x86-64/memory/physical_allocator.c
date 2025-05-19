@@ -13,9 +13,9 @@ struct page_lst {
 
 typedef struct page_lst page_lst;
 
-static uint64_t base;
+static u64 base;
 static char *alloc;
-static uint64_t alloc_size;
+static u64 alloc_size;
 page_lst free_lst = {0};
 spinlock_t phys_alloc_lock = {.name = "Physical Allocator"};
 
@@ -58,39 +58,37 @@ void *lst_pop(page_lst *lst) {
 }
 
 // Return page index of a given physical address
-uint64_t page_index(uint64_t addr) {
-    uint64_t pstart = PAGE_START(addr, PAGE_SIZE);
-    uint64_t offset = pstart - base;
-    return (uint64_t)(offset / PAGE_SIZE);
+u64 page_index(u64 addr) {
+    u64 pstart = PAGE_START(addr, PAGE_SIZE);
+    u64 offset = pstart - base;
+    return (u64)(offset / PAGE_SIZE);
 }
 
-uint64_t addr(uint64_t index) { return base + index * PAGE_SIZE; }
+u64 addr(u64 index) { return base + index * PAGE_SIZE; }
 
-bool bit_isset(uint64_t index) {
+bool bit_isset(u64 index) {
     char c = alloc[index / 8];
     return (c & (1L << (index % 8)));
 }
 
-void bit_set(uint64_t index) { alloc[index / 8] |= 1L << (index % 8); }
+void bit_set(u64 index) { alloc[index / 8] |= 1L << (index % 8); }
 
-void bit_clear(uint64_t index) {
-    alloc[index / 8] &= ~(uint8_t)(1 << (index % 8));
-}
+void bit_clear(u64 index) { alloc[index / 8] &= ~(u8)(1 << (index % 8)); }
 
 void init_phys_allocator(memory_area_t *ram_available) {
     logf(INFO, "Init physical allocator at base=0x%X with size 0x%X",
          ram_available->start, ram_available->size);
     lst_init(&free_lst);
     base = PAGE_END(ram_available->start, PAGE_SIZE) + 1;
-    uint64_t page_count = (ram_available->size / PAGE_SIZE);
+    u64 page_count = (ram_available->size / PAGE_SIZE);
     if (page_count == 0) return;
 
     alloc = (char *)(base + PHYSICAL_OFFSET);
     alloc_size = ((page_count - 1) / 8) + 1;
     memset(alloc, 0, alloc_size);
 
-    uint64_t index = page_index(base + alloc_size - 1) + 1;
-    uint64_t i = 0;
+    u64 index = page_index(base + alloc_size - 1) + 1;
+    u64 i = 0;
     for (; i < index; i++) {
         bit_set(i);
     }
@@ -110,15 +108,15 @@ void *kalloc() {
     acquire(&phys_alloc_lock);
     if (lst_empty(&free_lst)) return 0;
     void *page = lst_pop(&free_lst);
-    bit_set(page_index((uint64_t)page));
+    bit_set(page_index((u64)page));
     release(&phys_alloc_lock);
     return page;
 }
 
 void kfree(void *page) {
-    uint64_t addr = PAGE_START((uint64_t)page, PAGE_SIZE);
+    u64 addr = PAGE_START((u64)page, PAGE_SIZE);
 
-    uint64_t index = page_index(addr);
+    u64 index = page_index(addr);
     // Page is already free
 
     if (!bit_isset(index)) return;

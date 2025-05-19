@@ -4,7 +4,7 @@
 void init_keyboard();
 void keystroke_handler();
 
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 #define KEY_RESERVED   0
 #define KEY_ESC        1
@@ -274,7 +274,7 @@ rely on ambient */
 
 #define KEY_MICMUTE 248 /* Mute / unmute the microphone */
 
-void key_pressed(uint32_t);
-void key_release(uint32_t);
+void key_pressed(u32);
+void key_release(u32);
 
 #endif  // KEYBOARD_H

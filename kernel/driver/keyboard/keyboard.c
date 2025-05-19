@@ -14,9 +14,9 @@
 #define SCANCODE_SET_2 0x41
 #define SCANCODE_SET_3 0x3F
 
-uint8_t scancode_set = 0;
+u8 scancode_set = 0;
 
-uint8_t keycode_to_ascii[] = {
+u8 keycode_to_ascii[] = {
     0,     // KEY_RESERVED
     0,     // KEY_ESC
     '1',   // KEY_1
@@ -106,8 +106,8 @@ uint8_t keycode_to_ascii[] = {
 void init_keyboard() {
     if (scancode_set != 0) return;
 
-    uint8_t sc;
-    uint32_t retry = 0;
+    u8 sc;
+    u32 retry = 0;
     do {
         outb(KEYBOARD_PORT, 0xF0);
         outb(KEYBOARD_PORT, 0);
@@ -126,7 +126,7 @@ void init_keyboard() {
 }
 
 void keystroke_handler() {
-    uint8_t scancode = inb(KEYBOARD_PORT);
+    u8 scancode = inb(KEYBOARD_PORT);
 
     switch (scancode_set) {
         case SCANCODE_SET_1:
@@ -138,11 +138,11 @@ void keystroke_handler() {
     return;
 }
 
-void key_pressed(uint32_t code) {
+void key_pressed(u32 code) {
     if (code <= 83) {
         printf("%c", keycode_to_ascii[code]);
     }
     return;
 }
 
-void key_release(uint32_t _) { return; }
+void key_release(u32 _) { return; }

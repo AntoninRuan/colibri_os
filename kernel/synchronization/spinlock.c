@@ -23,7 +23,7 @@ void acquire(spinlock_t *lock) {
     }
 
 #define WARNING 10000000
-    uint64_t nb_tries = 0;
+    u64 nb_tries = 0;
     bool warned = false;
     while (__atomic_test_and_set(&lock->held, __ATOMIC_ACQUIRE)) {
         if (nb_tries > WARNING && !warned) {

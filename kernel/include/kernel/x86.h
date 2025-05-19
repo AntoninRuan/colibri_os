@@ -1,7 +1,7 @@
 #ifndef X86_H
 #define X86_H
 
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 #define IRQ_PIT      0x0
 #define IRQ_KEYBOARD 0x1
@@ -16,42 +16,42 @@
 
 // Struct use to read the value of general purposer register after a pushal
 struct registers_t {
-    uint32_t edi;
-    uint32_t esi;
-    uint32_t ebp;
-    uint32_t esp;
-    uint32_t ebx;
-    uint32_t edx;
-    uint32_t ecpx;
-    uint32_t eax;
+    u32 edi;
+    u32 esi;
+    u32 ebp;
+    u32 esp;
+    u32 ebx;
+    u32 edx;
+    u32 ecpx;
+    u32 eax;
 };
 
 struct interrupt_frame {
     struct registers_t registers;
 
-    uint32_t vector_number;
-    uint32_t error_code;
+    u32 vector_number;
+    u32 error_code;
 };
 
-static inline void outb(uint16_t port, uint8_t value) {
+static inline void outb(u16 port, u8 value) {
     asm volatile("outb %b0, %w1" : : "a"(value), "Nd"(port) : "memory");
 }
 
-static inline uint8_t inb(uint16_t port) {
-    uint8_t value;
+static inline u8 inb(u16 port) {
+    u8 value;
     asm volatile("inb %w1, %b0" : "=a"(value) : "Nd"(port) : "memory");
     return value;
 }
 
 static inline void iowait() { outb(0x80, 0); }
 
-static inline uint64_t rdmsr(uint32_t msr_id) {
-    uint64_t msr_value;
+static inline u64 rdmsr(u32 msr_id) {
+    u64 msr_value;
     asm volatile("rdmsr" : "=A"(msr_value) : "c"(msr_id));
     return msr_value;
 }
 
-static inline void wrmsr(uint32_t msr_id, uint64_t msr_value) {
+static inline void wrmsr(u32 msr_id, u64 msr_value) {
     asm volatile("wrmsr" : : "A"(msr_value), "c"(msr_id));
 }
 

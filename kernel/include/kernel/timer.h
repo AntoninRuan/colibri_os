@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void nanodelay(uint64_t);
-void millidelay(uint64_t);
-void arm_timer(uint64_t nano, bool periodic, bool local);
+void nanodelay(u64);
+void millidelay(u64);
+void arm_timer(u64 nano, bool periodic, bool local);
 
 #endif  // TIMER_H

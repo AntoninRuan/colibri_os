@@ -14,7 +14,7 @@ extern "C" {
 int printf(const char *__restrict, ...);
 int sprintf(char *__restrict, const char *__restrict, ...);
 int vsprintf(char *restrict str, const char *restrict formats, va_list ap);
-int putchar(uint8_t);
+int putchar(u8);
 
 #ifdef __cplusplus
 }

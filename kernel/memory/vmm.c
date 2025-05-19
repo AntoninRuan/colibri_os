@@ -41,13 +41,12 @@ memory_area_t *get_memory_area(vmm_info_t *vmm, void *va) {
     return NULL;
 }
 
-memory_area_t *vmm_alloc(vmm_info_t *vmm, uint64_t sz, uint8_t flags) {
+memory_area_t *vmm_alloc(vmm_info_t *vmm, u64 sz, u8 flags) {
     return vmm_alloc_at(0, vmm, sz, flags);
 }
 
-memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, uint64_t sz,
-                            uint8_t flags) {
-    uint64_t length = PAGE_END(sz - 1, SMALL_PAGE_SIZE);
+memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, u64 sz, u8 flags) {
+    u64 length = PAGE_END(sz - 1, SMALL_PAGE_SIZE);
     uintptr_t low_bound;
     uintptr_t high_bound = vmm->vmm_data_end;
     uintptr_t found = 0;

@@ -5,23 +5,23 @@
 
 #ifndef __is_asm
 
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 struct kernel_status {
-    uint32_t core_available;
-    uint32_t core_running;
+    u32 core_available;
+    u32 core_running;
 
-    uint32_t bsp_id;
+    u32 bsp_id;
     bool nx_flag_enabled;
 };
 
 typedef struct kernel_status kernel_status_t;
 
 struct cpu_status {
-    uint32_t id;
+    u32 id;
 
-    uint32_t push_off_count;
-    uint8_t int_on;
+    u32 push_off_count;
+    u8 int_on;
 };
 
 typedef struct cpu_status cpu_status_t;
@@ -32,7 +32,7 @@ extern cpu_status_t cpu_status[];
 #ifdef __arch_x86_64
 #include <kernel/arch/x86-64/apic.h>
 static inline cpu_status_t *get_cpu() {
-    uint32_t apic_id = get_apic_id();
+    u32 apic_id = get_apic_id();
     if (cpu_status[apic_id].id != apic_id) {
         cpu_status[apic_id].id = apic_id;
     }

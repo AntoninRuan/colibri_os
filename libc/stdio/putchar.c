@@ -5,7 +5,7 @@
 #include <kernel/tty.h>
 #endif
 
-int putchar(uint8_t c) {
+int putchar(u8 c) {
 #ifdef __is_libk
     terminal_write(c);
 #else

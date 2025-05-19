@@ -8,34 +8,33 @@
 #include <stddef.h>
 #include <stdint.h>
 
-volatile uint32_t *io_apic_reg_sel = 0;
-volatile uint32_t *io_apic_win = 0;
+volatile u32 *io_apic_reg_sel = 0;
+volatile u32 *io_apic_win = 0;
 
-uint32_t read_ioapic_register(uint8_t reg) {
-    *io_apic_reg_sel = (uint32_t)reg;
+u32 read_ioapic_register(u8 reg) {
+    *io_apic_reg_sel = (u32)reg;
     return *io_apic_win;
 }
 
-void write_ioapic_register(uint8_t reg, uint32_t value) {
+void write_ioapic_register(u8 reg, u32 value) {
     if (io_apic_reg_sel == 0) return;
 
-    *io_apic_reg_sel = (uint32_t)reg;
+    *io_apic_reg_sel = (u32)reg;
     *io_apic_win = value;
 }
 
-void write_ioapic_redirect(uint8_t index, io_apic_redirect_t entry) {
+void write_ioapic_redirect(u8 index, io_apic_redirect_t entry) {
     if (index < 0x10 || index > 0x3F) return;
     if (index % 2) return;
 
-    uint32_t low = (uint32_t)(entry.raw & 0xFFFFFFFF);
-    uint32_t high = (uint32_t)(entry.raw >> 32);
+    u32 low = (u32)(entry.raw & 0xFFFFFFFF);
+    u32 high = (u32)(entry.raw >> 32);
 
     write_ioapic_register(index, low);
     write_ioapic_register(index + 1, high);
 }
 
-int set_irq(uint8_t irq, uint8_t idt_entry, uint8_t dest, uint8_t dest_mode,
-            bool masked) {
+int set_irq(u8 irq, u8 idt_entry, u8 dest, u8 dest_mode, bool masked) {
     io_apic_redirect_t entry;
     entry.raw = read_ioapic_register(0x10 + (irq * 2));
     if (entry.vector != 0) {
@@ -43,7 +42,7 @@ int set_irq(uint8_t irq, uint8_t idt_entry, uint8_t dest, uint8_t dest_mode,
         return -1;
     }
 
-    entry.raw = (uint64_t)(idt_entry & 0xFF);
+    entry.raw = (u64)(idt_entry & 0xFF);
 
     // TODO multiple ioapic handling
 
@@ -60,7 +59,7 @@ int read_madt() {
 
     struct ic_headers *header;
     for (header = (struct ic_headers *)madt->interrupt_controllers;
-         ((uint64_t)header) - ((uint64_t)madt) < madt->header.length;
+         ((u64)header) - ((u64)madt) < madt->header.length;
          header = (struct ic_headers *)((void *)header + header->length)) {
         switch (header->type) {
             case IC_TYPE_LAPIC:
@@ -79,8 +78,7 @@ int read_madt() {
                              "MMIO Mapping for io_apic registers failed");
                         return 1;
                     }
-                    io_apic_win =
-                        (uint32_t *)((uintptr_t)io_apic_reg_sel + 0x10);
+                    io_apic_win = (u32 *)((uintptr_t)io_apic_reg_sel + 0x10);
                 }
                 break;
 

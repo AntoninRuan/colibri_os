@@ -9,9 +9,9 @@
 struct memory_area;
 typedef struct memory_area memory_area_t;
 struct memory_area {
-    uint64_t start;
-    uint64_t size;
-    uint8_t flags;
+    u64 start;
+    u64 size;
+    u8 flags;
     memory_area_t *next;
     memory_area_t *prev;
 };
@@ -56,9 +56,8 @@ extern vmm_info_t *current_vmm;
 void vmm_init(vmm_info_t *vmm, void *pagetable, uintptr_t start, uintptr_t end,
               bool user, spinlock_t *spinlock);
 memory_area_t *get_memory_area(vmm_info_t *vmm, void *va);
-memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *, uint64_t sz,
-                            uint8_t flags);
-memory_area_t *vmm_alloc(vmm_info_t *vmm, uint64_t sz, uint8_t flags);
+memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *, u64 sz, u8 flags);
+memory_area_t *vmm_alloc(vmm_info_t *vmm, u64 sz, u8 flags);
 int vmm_free(vmm_info_t *vmm, memory_area_t *area);
 int on_demand_allocation(void *va);
 

@@ -22,56 +22,55 @@
 #define IC_TYPE_GIC_ITS                   15
 
 struct ic_headers {
-    uint8_t type;
-    uint8_t length;
+    u8 type;
+    u8 length;
 };
 
 struct ic_lapic {
     struct ic_headers header;
 
-    uint8_t acpi_processor_uid;
-    uint8_t apic_id;
-    uint32_t flags;
+    u8 acpi_processor_uid;
+    u8 apic_id;
+    u32 flags;
 };
 typedef struct ic_lapic ic_lapic_t;
 
 struct ic_io_apic {
     struct ic_headers header;
 
-    uint8_t id;
-    uint8_t reserved;
-    uint32_t address;
-    uint32_t global_system_interrupt_base;
+    u8 id;
+    u8 reserved;
+    u32 address;
+    u32 global_system_interrupt_base;
 } __attribute__((packed));
 
 struct madt {
     struct acpi_sdt_header header;
 
-    uint32_t lapic_addr;
-    uint32_t flags;
-    uint8_t interrupt_controllers[];
+    u32 lapic_addr;
+    u32 flags;
+    u8 interrupt_controllers[];
 } __attribute__((packed));
 
 typedef union io_apic_redirect {
     struct {
-        uint64_t vector        : 8;  // bit 0..7
-        uint64_t delivery_mode : 3;  // bit 8..10
+        u64 vector        : 8;  // bit 0..7
+        u64 delivery_mode : 3;  // bit 8..10
 #define DEST_PHYSICAL 0
 #define DEST_LOGICAL  1
-        uint64_t destination_mode : 1;   // bit 11
-        uint64_t delivery_status  : 1;   // bit 12
-        uint64_t intpol           : 1;   // bit 13
-        uint64_t remote_irr       : 1;   // bit 14
-        uint64_t trigger_mode     : 1;   // bit 15
-        uint64_t masked           : 1;   // bit 16
-        uint64_t reserved         : 39;  // 17..55
-        uint64_t destination      : 8;   // 56..64
+        u64 destination_mode : 1;   // bit 11
+        u64 delivery_status  : 1;   // bit 12
+        u64 intpol           : 1;   // bit 13
+        u64 remote_irr       : 1;   // bit 14
+        u64 trigger_mode     : 1;   // bit 15
+        u64 masked           : 1;   // bit 16
+        u64 reserved         : 39;  // 17..55
+        u64 destination      : 8;   // 56..64
     };
-    uint64_t raw;
+    u64 raw;
 } io_apic_redirect_t;
 
 int read_madt();
-int set_irq(uint8_t irq, uint8_t idt_entry, uint8_t dest, uint8_t dest_mode,
-            bool masked);
+int set_irq(u8 irq, u8 idt_entry, u8 dest, u8 dest_mode, bool masked);
 
 #endif  // IOAPIC_H

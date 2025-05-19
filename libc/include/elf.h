@@ -3,12 +3,12 @@
 
 #include <stdint.h>
 
-typedef uint64_t Elf64_Addr;
-typedef uint64_t Elf64_Off;
-typedef uint16_t Elf64_Half;
-typedef uint32_t Elf64_Word;
+typedef u64 Elf64_Addr;
+typedef u64 Elf64_Off;
+typedef u16 Elf64_Half;
+typedef u32 Elf64_Word;
 typedef int32_t Elf64_Sword;
-typedef uint64_t Elf64_Xword;
+typedef u64 Elf64_Xword;
 typedef int64_t Elf64_Sxword;
 
 // ELF64 Header
@@ -235,10 +235,10 @@ typedef struct {
 #define DT_LOPROC       0x70000000  // Reserved for processor specific use
 #define DT_HIPROC       0x7FFFFFFF
 
-char *get_elf_string(Elf64_Ehdr *header, uint64_t off);
-Elf64_Shdr *get_section(Elf64_Ehdr *header, uint64_t idx);
-Elf64_Phdr *get_segment(Elf64_Ehdr *header, uint64_t idx);
+char *get_elf_string(Elf64_Ehdr *header, u64 off);
+Elf64_Shdr *get_section(Elf64_Ehdr *header, u64 idx);
+Elf64_Phdr *get_segment(Elf64_Ehdr *header, u64 idx);
 
-unsigned long elf64_hash(const unsigned char* name);
+unsigned long elf64_hash(const unsigned char *name);
 
 #endif  // ELF_H

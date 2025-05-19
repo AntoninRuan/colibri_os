@@ -21,8 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 
-extern uint8_t ap_trampoline;
-extern uint8_t vector_handler_0x21;
+extern u8 ap_trampoline;
+extern u8 vector_handler_0x21;
 spinlock_t core_running_lock = {.name = "Core Running"};
 
 void init_ap() {
@@ -31,7 +31,7 @@ void init_ap() {
 
     acquire(&core_running_lock);
     kernel_status.core_running++;
-    for (uint32_t i = 0; i < kernel_status.core_available; i++) {
+    for (u32 i = 0; i < kernel_status.core_available; i++) {
         // do not start BSP, that's already running this code
         if (i == kernel_status.bsp_id) continue;
         // send INIT IPI
@@ -55,7 +55,7 @@ void init_ap() {
             .deliv_mode = DELIVERY_START_UP,
             .vector = 8,
         };
-        for (uint8_t j = 0; j < 2; j++) {
+        for (u8 j = 0; j < 2; j++) {
             write_lapic_register(LAPIC_REG_ERROR_STATUS, 0);
             send_ipi(i, startup);
             nanodelay(200e3);  // wait 200 usec
@@ -68,11 +68,11 @@ void init_ap() {
          kernel_status.core_running);
 }
 
-void ap_startup(uint32_t apicid) {
+void ap_startup(u32 apicid) {
     push_off();
     unsigned int eax, ebx, ecx, edx;
     __get_cpuid(0x80000001, &eax, &ebx, &ecx, &edx);
-    uint32_t nx_flag_supported = (edx & (1L << 20)) != 0;
+    u32 nx_flag_supported = (edx & (1L << 20)) != 0;
     if (kernel_status.nx_flag_enabled) {
         if (!nx_flag_supported) {
             panic(
@@ -94,7 +94,7 @@ void ap_startup(uint32_t apicid) {
     main();
 }
 
-void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
+void bsp_startup(unsigned long magic, unsigned long addr, u32 apicid) {
     push_off();
     init_qemu_serial();
     kernel_status.bsp_id = apicid;
@@ -131,7 +131,7 @@ void bsp_startup(unsigned long magic, unsigned long addr, uint32_t apicid) {
 
     // Enable keyboard support
     init_keyboard();
-    set_idt_entry(IRQ_VECTOR_KEYBOARD, (uint64_t)&vector_handler_0x21,
+    set_idt_entry(IRQ_VECTOR_KEYBOARD, (u64)&vector_handler_0x21,
                   GDT_ENTRY_KERNEL_CODE, FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE));
 
     set_irq(IRQ_KEYBOARD, IRQ_VECTOR_KEYBOARD, DEST_PHYSICAL, 0, false);

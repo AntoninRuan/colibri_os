@@ -1,13 +1,13 @@
 #ifndef SYNC_H
 #define SYNC_H
 
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 struct spinlock {
-    uint8_t held;
+    u8 held;
 
     // Debug value
-    uint32_t cpu_id;
+    u32 cpu_id;
     char *name;
 };
 

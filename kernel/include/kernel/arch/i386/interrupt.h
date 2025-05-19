@@ -18,8 +18,7 @@
 // can still occurs
 #define FLAGS_GATE_TYPE(x) (x)
 
-void set_idt_entry(uint8_t vector, uint32_t handler_addr, uint16_t selector,
-                   uint8_t flags);
+void set_idt_entry(u8 vector, u32 handler_addr, u16 selector, u8 flags);
 void load_idt();
 
 #endif  // INTERRUPT_H

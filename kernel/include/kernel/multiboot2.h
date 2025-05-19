@@ -49,43 +49,43 @@
 #include <stdint.h>
 
 struct multiboot_tag_header {
-    uint32_t type;
-    uint32_t size;
+    u32 type;
+    u32 size;
 };
 
 struct multiboot_boot_cmd_line {
-    uint32_t type;
-    uint32_t size;
+    u32 type;
+    u32 size;
     char cmdline[0];
 };
 
 struct multiboot_bootloader {
-    uint32_t type;
-    uint32_t size;
+    u32 type;
+    u32 size;
     char name[0];
 };
 
 struct multiboot_module {
-    uint32_t type;
-    uint32_t size;
-    uint32_t mod_start;
-    uint32_t mod_end;
+    u32 type;
+    u32 size;
+    u32 mod_start;
+    u32 mod_end;
     char string[0];
 };
 
 struct multiboot_basic_meminfo {
-    uint32_t type;
-    uint32_t size;
-    uint32_t mem_lower;
-    uint32_t mem_upper;
+    u32 type;
+    u32 size;
+    u32 mem_lower;
+    u32 mem_upper;
 };
 
 struct multiboot_bios_boot_device {
-    uint32_t type;
-    uint32_t size;
-    uint32_t biosdev;
-    uint32_t partition;
-    uint32_t sub_partition;
+    u32 type;
+    u32 size;
+    u32 biosdev;
+    u32 partition;
+    u32 sub_partition;
 };
 
 #define MULTIBOOT_MEMORY_AVAILABLE 1
@@ -95,131 +95,131 @@ struct multiboot_bios_boot_device {
 #define MULTIBOOT_MEMORY_BADRAM    5
 
 struct multiboot_mmap_entry {
-    uint64_t base_addr;
-    uint64_t length;
-    uint32_t type;
-    uint32_t reserved;
+    u64 base_addr;
+    u64 length;
+    u32 type;
+    u32 reserved;
 };
 
 struct multiboot_memory_map {
-    uint32_t type;
-    uint32_t size;
-    uint32_t entry_size;
-    uint32_t entry_version;
+    u32 type;
+    u32 size;
+    u32 entry_size;
+    u32 entry_version;
     struct multiboot_mmap_entry entries[0];
 };
 
 struct multiboot_vbe {
-    uint32_t type;
-    uint32_t size;
-    uint16_t vbe_mode;
-    uint16_t vbe_interface_segment;
-    uint16_t vbe_interface_off;
-    uint16_t vbe_interface_len;
-    uint8_t vbe_control_info[512];
-    uint8_t vbe_mode_info[256];
+    u32 type;
+    u32 size;
+    u16 vbe_mode;
+    u16 vbe_interface_segment;
+    u16 vbe_interface_off;
+    u16 vbe_interface_len;
+    u8 vbe_control_info[512];
+    u8 vbe_mode_info[256];
 };
 
 struct multiboot_framebuffer {
-    uint32_t type;
-    uint32_t size;
+    u32 type;
+    u32 size;
     struct framebuffer fb;
 };
 
 struct multiboot_elf_symbols {
-    uint32_t type;
-    uint32_t size;
-    uint16_t num;
-    uint16_t entsize;
-    uint16_t shndx;
-    uint16_t reserved;
+    u32 type;
+    u32 size;
+    u16 num;
+    u16 entsize;
+    u16 shndx;
+    u16 reserved;
     char sections[0];
 };
 
 struct multiboot_apm {
-    uint32_t type;
-    uint32_t size;
-    uint16_t version;
-    uint16_t cseg;
-    uint32_t offset;
-    uint16_t cseg16;
-    uint16_t dseg;
-    uint16_t flags;
-    uint16_t cseg_len;
-    uint16_t cseg16_len;
-    uint16_t dseg_len;
+    u32 type;
+    u32 size;
+    u16 version;
+    u16 cseg;
+    u32 offset;
+    u16 cseg16;
+    u16 dseg;
+    u16 flags;
+    u16 cseg_len;
+    u16 cseg16_len;
+    u16 dseg_len;
 };
 
 struct multiboot_efi32 {
-    uint32_t type;
-    uint32_t size;
-    uint32_t pointer;
+    u32 type;
+    u32 size;
+    u32 pointer;
 };
 
 struct multiboot_efi64 {
-    uint32_t type;
-    uint32_t size;
-    uint64_t pointer;
+    u32 type;
+    u32 size;
+    u64 pointer;
 };
 
 struct multiboot_smbios {
-    uint32_t type;
-    uint32_t size;
-    uint8_t major;
-    uint8_t minor;
-    uint8_t reserved[6];
-    uint8_t tables[0];
+    u32 type;
+    u32 size;
+    u8 major;
+    u8 minor;
+    u8 reserved[6];
+    u8 tables[0];
 };
 
 struct multiboot_acpi_old {
-    uint32_t type;
-    uint32_t size;
-    uint8_t rsdp[0];
+    u32 type;
+    u32 size;
+    u8 rsdp[0];
 };
 
 struct multiboot_acpi_new {
-    uint32_t type;
-    uint32_t size;
-    uint8_t rsdp[0];
+    u32 type;
+    u32 size;
+    u8 rsdp[0];
 };
 
 struct multiboot_network {
-    uint32_t type;
-    uint32_t size;
-    uint8_t dhcpack[0];
+    u32 type;
+    u32 size;
+    u8 dhcpack[0];
 };
 
 struct multiboot_efi_mmap {
-    uint32_t type;
-    uint32_t size;
-    uint32_t descriptor_size;
-    uint32_t descriptor_version;
-    uint8_t mmap[0];
+    u32 type;
+    u32 size;
+    u32 descriptor_size;
+    u32 descriptor_version;
+    u8 mmap[0];
 };
 
 struct multiboot_efi32_im {
-    uint32_t type;
-    uint32_t size;
-    uint32_t pointer;
+    u32 type;
+    u32 size;
+    u32 pointer;
 };
 
 struct multiboot_efi64_im {
-    uint32_t type;
-    uint32_t size;
-    uint64_t pointer;
+    u32 type;
+    u32 size;
+    u64 pointer;
 };
 
 struct multiboot_load_base_addr {
-    uint32_t type;
-    uint32_t size;
-    uint32_t addr;
+    u32 type;
+    u32 size;
+    u32 addr;
 };
 
 struct multiboot_boot_information {
     struct multiboot_boot_cmd_line **cmd_line;
     struct multiboot_bootloader **bootloader;
     struct multiboot_module **module;
-    uint64_t module_size;
+    u64 module_size;
     struct multiboot_basic_meminfo **basic_meminfo;
     struct multiboot_bios_boot_device **bios_boot_device;
     struct multiboot_memory_map **memory_map;
@@ -239,7 +239,7 @@ struct multiboot_boot_information {
     struct multiboot_load_base_addr **load_base_addr;
 };
 
-void load_multiboot_info(uint32_t magic, uint64_t addr,
+void load_multiboot_info(u32 magic, u64 addr,
                          struct multiboot_boot_information *);
 
 #endif  // __is_asm

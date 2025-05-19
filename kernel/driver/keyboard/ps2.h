@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-void handle_set1(uint8_t scancode);
+void handle_set1(u8 scancode);
 
 #endif  // KEYBOARD_PS2_H

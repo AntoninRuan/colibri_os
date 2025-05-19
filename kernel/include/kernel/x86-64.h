@@ -1,7 +1,7 @@
 #ifndef X86_64_H
 #define X86_64_H
 
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 #define IRQ_PIT      0x0
 #define IRQ_KEYBOARD 0x1
@@ -42,41 +42,41 @@
 // developpers manual
 union page_fault_error_code {
     struct {
-        uint32_t present    : 1;
-        uint32_t write      : 1;
-        uint32_t user       : 1;
-        uint32_t rsvd       : 1;
-        uint32_t ifetch     : 1;
-        uint32_t pk         : 1;
-        uint32_t ss         : 1;
-        uint32_t hlat       : 1;
-        uint32_t reserved   : 7;
-        uint32_t sgx        : 1;
-        uint32_t reserved_2 : 16;
+        u32 present    : 1;
+        u32 write      : 1;
+        u32 user       : 1;
+        u32 rsvd       : 1;
+        u32 ifetch     : 1;
+        u32 pk         : 1;
+        u32 ss         : 1;
+        u32 hlat       : 1;
+        u32 reserved   : 7;
+        u32 sgx        : 1;
+        u32 reserved_2 : 16;
     };
-    uint32_t raw;
+    u32 raw;
 };
 typedef union page_fault_error_code pg_error_t;
 
 // Struct use to read the value of register after a pushal
 struct registers {
-    uint64_t cr2;
-    uint64_t r15;
-    uint64_t r14;
-    uint64_t r13;
-    uint64_t r12;
-    uint64_t r11;
-    uint64_t r10;
-    uint64_t r9;
-    uint64_t r8;
-    uint64_t rdi;
-    uint64_t rsi;
-    uint64_t rbp;
-    uint64_t rsp;
-    uint64_t rbx;
-    uint64_t rdx;
-    uint64_t rcx;
-    uint64_t rax;
+    u64 cr2;
+    u64 r15;
+    u64 r14;
+    u64 r13;
+    u64 r12;
+    u64 r11;
+    u64 r10;
+    u64 r9;
+    u64 r8;
+    u64 rdi;
+    u64 rsi;
+    u64 rbp;
+    u64 rsp;
+    u64 rbx;
+    u64 rdx;
+    u64 rcx;
+    u64 rax;
 };
 
 typedef struct registers registers_t;
@@ -84,35 +84,35 @@ typedef struct registers registers_t;
 struct interrupt_frame {
     registers_t registers;
 
-    uint64_t vector_number;
-    uint64_t error_code;
+    u64 vector_number;
+    u64 error_code;
 
-    uint64_t iret_rip;
-    uint64_t iret_cs;
-    uint64_t iret_flags;
-    uint64_t iret_rsp;
-    uint64_t iret_ss;
+    u64 iret_rip;
+    u64 iret_cs;
+    u64 iret_flags;
+    u64 iret_rsp;
+    u64 iret_ss;
 };
 
-static inline void outb(uint16_t port, uint8_t value) {
+static inline void outb(u16 port, u8 value) {
     asm volatile("outb %b0, %w1" : : "a"(value), "Nd"(port) : "memory");
 }
 
-static inline uint8_t inb(uint16_t port) {
-    uint8_t value;
+static inline u8 inb(u16 port) {
+    u8 value;
     asm volatile("inb %w1, %b0" : "=a"(value) : "Nd"(port) : "memory");
     return value;
 }
 
 static inline void iowait() { outb(0x80, 0); }
 
-static inline uint64_t rdmsr(uint32_t msr_id) {
-    uint64_t high, low;
+static inline u64 rdmsr(u32 msr_id) {
+    u64 high, low;
     asm volatile("rdmsr" : "=d"(high), "=a"(low) : "c"(msr_id));
     return (high << 32) | low;
 }
 
-static inline void wrmsr(uint32_t msr_id, uint64_t msr_value) {
+static inline void wrmsr(u32 msr_id, u64 msr_value) {
     asm volatile("wrmsr"
                  :
                  : "d"(msr_value >> 32), "a"(msr_value & 0xFFFFFFFF),

@@ -3,24 +3,23 @@
 #include <stdint.h>
 
 struct interrupt_descriptor {
-    uint16_t addr_low;
-    uint16_t selector;
-    uint8_t ist;
-    uint8_t flags;
-    uint16_t addr_med;
-    uint32_t addr_high;
-    uint32_t reserved;
+    u16 addr_low;
+    u16 selector;
+    u8 ist;
+    u8 flags;
+    u16 addr_med;
+    u32 addr_high;
+    u32 reserved;
 } __attribute__((packed));
 
 struct IDTR {
-    uint16_t size;
-    uint64_t base;
+    u16 size;
+    u64 base;
 } __attribute__((packed));
 
 struct interrupt_descriptor idt[256] = {0};
 
-void set_idt_entry(uint8_t vector, uint64_t handler_addr, uint16_t selector,
-                   uint8_t flags) {
+void set_idt_entry(u8 vector, u64 handler_addr, u16 selector, u8 flags) {
     struct interrupt_descriptor *entry = &idt[vector];
 
     entry->addr_low = handler_addr & 0xFFFF;
@@ -31,12 +30,12 @@ void set_idt_entry(uint8_t vector, uint64_t handler_addr, uint16_t selector,
 }
 
 // Defined in isr_wrapper.S
-extern uint8_t vector_handler_0;
+extern u8 vector_handler_0;
 
 void load_idt() {
     // Initialized reserved vectors
-    for (uint8_t i = 0; i < 32; i++) {
-        set_idt_entry(i, (uint64_t)&vector_handler_0 + (i * 16),
+    for (u8 i = 0; i < 32; i++) {
+        set_idt_entry(i, (u64)&vector_handler_0 + (i * 16),
                       GDT_ENTRY_KERNEL_CODE,
                       FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE));
     }
@@ -44,7 +43,7 @@ void load_idt() {
     struct IDTR idtr = {0};
     idtr.size = sizeof(struct interrupt_descriptor) * 256 -
                 1;  // Size of idt in bytes minus one
-    idtr.base = (uint64_t)idt;
+    idtr.base = (u64)idt;
 
     asm volatile("lidt %0" ::"m"(idtr));
     return;

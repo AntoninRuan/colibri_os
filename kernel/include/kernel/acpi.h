@@ -2,7 +2,7 @@
 #define ACPI_H
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 // https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf#G10.1368542
 #define ACPI_TABLE_APIC "APIC"
@@ -37,47 +37,47 @@
 
 struct rsdp {
     char signature[8];  // Not null terminated
-    uint8_t checksum;
+    u8 checksum;
     char oem_id[6];
-    uint8_t revision;
-    uint32_t rsdt_addr;
+    u8 revision;
+    u32 rsdt_addr;
 } __attribute__((packed));
 
 struct xsdp {
     char signature[8];  // Not null terminated
-    uint8_t checksum;
+    u8 checksum;
     char oem_id[6];
-    uint8_t revision;
-    uint32_t rsdt_addr;  // Deprecated in xsdp
+    u8 revision;
+    u32 rsdt_addr;  // Deprecated in xsdp
 
-    uint32_t length;
-    uint64_t xsdt_address;
-    uint8_t extented_checksum;
-    uint8_t reserved[3];
+    u32 length;
+    u64 xsdt_address;
+    u8 extented_checksum;
+    u8 reserved[3];
 } __attribute__((packed));
 
 struct acpi_sdt_header {
     char signature[4];  // Not null terminated
-    uint32_t length;
-    uint8_t revision;
-    uint8_t checksum;
+    u32 length;
+    u8 revision;
+    u8 checksum;
     char oem_id[6];
     char oem_table_id[8];
-    uint32_t oem_revision;
-    uint32_t creator_id;
-    uint32_t creator_revision;
+    u32 oem_revision;
+    u32 creator_id;
+    u32 creator_revision;
 };
 
 typedef struct acpi_sdt_header acpi_sdt_header_t;
 
 struct rsdt {
     acpi_sdt_header_t header;
-    uint32_t sdt_addresses[];
+    u32 sdt_addresses[];
 };
 
 struct xsdt {
     acpi_sdt_header_t header;
-    uint64_t sdt_addresses[];
+    u64 sdt_addresses[];
 };
 
 int load_rsdp(struct rsdp *);

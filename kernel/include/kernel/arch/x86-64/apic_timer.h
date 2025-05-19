@@ -2,8 +2,8 @@
 #define APIC_TIMER_H
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <sys/cdefs.h>
 
-void arm_apic_timer(uint64_t nano, bool periodic);
+void arm_apic_timer(u64 nano, bool periodic);
 
 #endif  // APIC_TIMER_H

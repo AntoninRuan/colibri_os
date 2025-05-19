@@ -33,7 +33,7 @@ void *alloc(heap_node_t *heap, size_t size) {
             // Out of memory
             return NULL;
 
-        if (area->start == (uint64_t)cur + cur->size) {
+        if (area->start == (u64)cur + cur->size) {
             cur->size += area->size;
         } else {
             heap_node_t *tmp = cur;

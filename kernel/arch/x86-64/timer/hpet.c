@@ -11,62 +11,62 @@
 #include <stddef.h>
 #include <stdint.h>
 
-extern uint8_t vector_handler_0x30;
-extern uint8_t vector_handler_0x31;
-extern uint8_t vector_handler_0x32;
-extern uint8_t vector_handler_0x33;
-extern uint8_t vector_handler_0x34;
-extern uint8_t vector_handler_0x35;
-extern uint8_t vector_handler_0x36;
-extern uint8_t vector_handler_0x37;
-extern uint8_t vector_handler_0x38;
-extern uint8_t vector_handler_0x39;
-extern uint8_t vector_handler_0x3A;
-extern uint8_t vector_handler_0x3B;
-extern uint8_t vector_handler_0x3C;
-extern uint8_t vector_handler_0x3D;
-extern uint8_t vector_handler_0x3E;
-uint64_t hpet_vec_handler[32] = {
-    (uint64_t)&vector_handler_0x30, (uint64_t)&vector_handler_0x31,
-    (uint64_t)&vector_handler_0x32, (uint64_t)&vector_handler_0x33,
-    (uint64_t)&vector_handler_0x34, (uint64_t)&vector_handler_0x35,
-    (uint64_t)&vector_handler_0x36, (uint64_t)&vector_handler_0x37,
-    (uint64_t)&vector_handler_0x38, (uint64_t)&vector_handler_0x39,
-    (uint64_t)&vector_handler_0x3A, (uint64_t)&vector_handler_0x3B,
-    (uint64_t)&vector_handler_0x3C, (uint64_t)&vector_handler_0x3D,
-    (uint64_t)&vector_handler_0x3E};
+extern u8 vector_handler_0x30;
+extern u8 vector_handler_0x31;
+extern u8 vector_handler_0x32;
+extern u8 vector_handler_0x33;
+extern u8 vector_handler_0x34;
+extern u8 vector_handler_0x35;
+extern u8 vector_handler_0x36;
+extern u8 vector_handler_0x37;
+extern u8 vector_handler_0x38;
+extern u8 vector_handler_0x39;
+extern u8 vector_handler_0x3A;
+extern u8 vector_handler_0x3B;
+extern u8 vector_handler_0x3C;
+extern u8 vector_handler_0x3D;
+extern u8 vector_handler_0x3E;
+u64 hpet_vec_handler[32] = {
+    (u64)&vector_handler_0x30, (u64)&vector_handler_0x31,
+    (u64)&vector_handler_0x32, (u64)&vector_handler_0x33,
+    (u64)&vector_handler_0x34, (u64)&vector_handler_0x35,
+    (u64)&vector_handler_0x36, (u64)&vector_handler_0x37,
+    (u64)&vector_handler_0x38, (u64)&vector_handler_0x39,
+    (u64)&vector_handler_0x3A, (u64)&vector_handler_0x3B,
+    (u64)&vector_handler_0x3C, (u64)&vector_handler_0x3D,
+    (u64)&vector_handler_0x3E};
 
-volatile uint64_t *hpet_base_addr;
-uint32_t hpet_period;
-uint8_t timer_count;
+volatile u64 *hpet_base_addr;
+u32 hpet_period;
+u8 timer_count;
 bool hpet_available = false;
 
-uint64_t read_hpet_register(uint16_t reg) { return *(hpet_base_addr + reg); }
+u64 read_hpet_register(u16 reg) { return *(hpet_base_addr + reg); }
 
-void write_hpet_register(uint16_t reg, uint64_t value) {
+void write_hpet_register(u16 reg, u64 value) {
     *(hpet_base_addr + reg) = value;
 }
 
 void enable_hpet() {
-    uint64_t config = read_hpet_register(GENERAL_CONFIGURATION_REG);
+    u64 config = read_hpet_register(GENERAL_CONFIGURATION_REG);
     config |= 1;
     write_hpet_register(GENERAL_CONFIGURATION_REG, config);
 }
 
-void configure_timer(uint8_t timer, timer_config_t conf) {
+void configure_timer(u8 timer, timer_config_t conf) {
     // Timer is not available
     if (timer >= timer_count) return;
 
     write_hpet_register(TIMER_CONFIG_REG(timer), conf.raw);
 }
 
-uint64_t poll_hpet() { return read_hpet_register(MAIN_COUNTER_VALUE_REG); }
+u64 poll_hpet() { return read_hpet_register(MAIN_COUNTER_VALUE_REG); }
 
-void sleep_polled_hpet(uint64_t femto) {
-    uint64_t cycle = femto / hpet_period;
+void sleep_polled_hpet(u64 femto) {
+    u64 cycle = femto / hpet_period;
     ;
-    uint64_t main_counter = poll_hpet();
-    uint64_t target = main_counter + cycle;
+    u64 main_counter = poll_hpet();
+    u64 target = main_counter + cycle;
 
     if (main_counter > target)
         while (poll_hpet() > target);
@@ -75,16 +75,16 @@ void sleep_polled_hpet(uint64_t femto) {
     return;
 }
 
-int arm_hpet_timer(uint8_t timer, uint64_t femto, bool periodic) {
+int arm_hpet_timer(u8 timer, u64 femto, bool periodic) {
     push_off();
     if (timer >= timer_count) return 1;
-    uint64_t cycle = femto / (uint64_t)hpet_period;
+    u64 cycle = femto / (u64)hpet_period;
     timer_config_t config =
         (timer_config_t)read_hpet_register(TIMER_CONFIG_REG(timer));
 
     if (config.int_route_cnf == 0) {
-        uint8_t irq_used = 9;
-        uint32_t available_irq = config.int_route_cap;
+        u8 irq_used = 9;
+        u32 available_irq = config.int_route_cap;
         available_irq >>= 9;
         while (available_irq) {
             while ((available_irq & 1) == 0) {
@@ -130,14 +130,14 @@ int setup_hpet() {
         return 1;
     }
 
-    uint64_t general_cap = read_hpet_register(GENERAL_CAPABILTIES_REG);
+    u64 general_cap = read_hpet_register(GENERAL_CAPABILTIES_REG);
     timer_count = ((general_cap >> 8) & 0x1F) + 1;
-    hpet_period = (uint32_t)(general_cap >> 32);
+    hpet_period = (u32)(general_cap >> 32);
     logf(INFO, "HPET found with %d timer available", timer_count);
 
     enable_hpet();
 
-    for (uint8_t i = 0; i < timer_count; i++) {
+    for (u8 i = 0; i < timer_count; i++) {
         set_idt_entry(HPET_BASE_INT_VEC + i, hpet_vec_handler[i],
                       GDT_ENTRY_KERNEL_CODE,
                       FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE));

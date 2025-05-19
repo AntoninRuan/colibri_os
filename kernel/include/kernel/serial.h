@@ -1,8 +1,8 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
-#include <stdint.h>
+#include <sys/cdefs.h>
 
-int init_serial(uint16_t port);
+int init_serial(u16 port);
 
 #endif  // SERIAL_H

@@ -2,13 +2,13 @@
 #define HEAP_H
 
 #include <stddef.h>
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 struct heap_node {
     size_t size;
 #define FREE 0
 #define USED 1
-    uint8_t status;
+    u8 status;
     struct heap_node *prev;
     struct heap_node *next;
 };

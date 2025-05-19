@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 
-void load_multiboot_info(uint32_t magic, uint64_t addr,
+void load_multiboot_info(u32 magic, u64 addr,
                          struct multiboot_boot_information *boot_info) {
     log(INFO, "Loading multiboot info");
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
@@ -19,10 +19,10 @@ void load_multiboot_info(uint32_t magic, uint64_t addr,
     // TODO probably should have verification we don't overflow size
     // unsigned int size = *(unsigned int *) addr;
     struct multiboot_tag_header *header;
-    uint32_t module_index = 0;
+    u32 module_index = 0;
     for (header = (struct multiboot_tag_header *)(addr + 8);
          header->type != MULTIBOOT_HEADER_TAG_END;
-         header = (struct multiboot_tag_header *)((uint8_t *)header +
+         header = (struct multiboot_tag_header *)((u8 *)header +
                                                   ((header->size + 7) & ~7))) {
         switch (header->type) {
             case MULTIBOOT_TAG_TYPE_BOOT_CMD_LINE:

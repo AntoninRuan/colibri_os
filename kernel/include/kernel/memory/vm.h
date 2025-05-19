@@ -13,9 +13,8 @@
 void kvminit(struct multiboot_memory_map *);
 void clean_paging();
 void *walk(pml4e_t *pagetable, void *va, bool alloc);
-int mappages(pml4e_t *pagetable, void *va, uint64_t sz, void *pa,
-             uint8_t flags);
-int unmappages(pml4e_t *pagetable, void *va, uint64_t sz, bool free);
-void *map_mmio(vmm_info_t *, uint64_t physical, size_t size, bool writable);
+int mappages(pml4e_t *pagetable, void *va, u64 sz, void *pa, u8 flags);
+int unmappages(pml4e_t *pagetable, void *va, u64 sz, bool free);
+void *map_mmio(vmm_info_t *, u64 physical, size_t size, bool writable);
 
 #endif  // VM_H

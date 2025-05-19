@@ -1,7 +1,7 @@
 #ifndef INTERRUPT_H
 #define INTERRUPT_H
 
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 // Privilege field, CPU privilege level required to access the interrupt via
 // the INT instruction (ignored by hardware interrupt)
@@ -18,8 +18,7 @@
 // can still occurs
 #define FLAGS_GATE_TYPE(x) (x)
 
-void set_idt_entry(uint8_t vector, uint64_t handler_addr, uint16_t selector,
-                   uint8_t flags);
+void set_idt_entry(u8 vector, u64 handler_addr, u16 selector, u8 flags);
 void load_idt();
 
 #endif  // INTERRUPT_H

@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-uint32_t lapic_base_address = 0;
+u32 lapic_base_address = 0;
 bool support_xapic2 = false;
 
 void disable_pic() {
@@ -40,24 +40,24 @@ bool check_lapic_availability() {
     return has_lapic;
 }
 
-uint32_t read_lapic_register(uint32_t reg) {
-    uint32_t value;
+u32 read_lapic_register(u32 reg) {
+    u32 value;
     if (support_xapic2) {
-        uint32_t apic_reg_msr = 0x800 + (reg >> 4);
+        u32 apic_reg_msr = 0x800 + (reg >> 4);
         value = rdmsr(apic_reg_msr);
     } else {
-        uint32_t *index = (uint32_t *)(lapic_base_address + reg);
+        u32 *index = (u32 *)(lapic_base_address + reg);
         value = *index;
     }
     return value;
 }
 
-void write_lapic_register(uint32_t reg, uint32_t value) {
+void write_lapic_register(u32 reg, u32 value) {
     if (support_xapic2) {
-        uint32_t apic_reg_msr = 0x800 + (reg >> 4);
-        wrmsr(apic_reg_msr, (uint64_t)value);
+        u32 apic_reg_msr = 0x800 + (reg >> 4);
+        wrmsr(apic_reg_msr, (u64)value);
     } else {
-        uint32_t *index = (uint32_t *)(lapic_base_address + reg);
+        u32 *index = (u32 *)(lapic_base_address + reg);
         *index = value;
     }
 }
@@ -65,14 +65,14 @@ void write_lapic_register(uint32_t reg, uint32_t value) {
 void send_eoi() { write_lapic_register(LAPIC_REGISTER_EOI, 0); }
 
 // Defined in isr_wrapper.S
-extern uint8_t vector_handler_0xFF;
+extern u8 vector_handler_0xFF;
 
 int enable_lapic() {
     if (!check_lapic_availability()) return 1;
 
     disable_pic();
 
-    uint64_t apic_base = rdmsr(IA32_APIC_BASE);
+    u64 apic_base = rdmsr(IA32_APIC_BASE);
 
     apic_base |= 0x800;  // Make sure lapic is enabled
 
@@ -84,11 +84,11 @@ int enable_lapic() {
 
     lapic_base_address = (apic_base & 0xFFFFF000);  // Only used if using xapic
 
-    uint32_t spurious_vector = 0xFF | 0x100;
+    u32 spurious_vector = 0xFF | 0x100;
 
     write_lapic_register(LAPIC_REGISTER_SPURIOUS_VECTOR, spurious_vector);
 
-    set_idt_entry(0xFF, (uint32_t)&vector_handler_0xFF, GDT_ENTRY_KERNEL_CODE,
+    set_idt_entry(0xFF, (u32)&vector_handler_0xFF, GDT_ENTRY_KERNEL_CODE,
                   FLAGS_DPL(0) | FLAGS_GATE_TYPE(0xE));
 
     return 0;

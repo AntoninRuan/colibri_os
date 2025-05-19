@@ -10,7 +10,7 @@ extern "C" {
 #include <sys/cdefs.h>
 
 int ceildiv(int x, int y);
-uint8_t ceillog2(uint64_t value);
+u8 ceillog2(u64 value);
 void itoa(char *buf, unsigned int base, int d, bool caps);
 
 #ifdef __cplusplus

@@ -2,7 +2,7 @@
 #define APIC_H
 
 #include <cpuid.h>
-#include <stdint.h>
+#include <sys/cdefs.h>
 #define PIC_COMMAND_MASTER 0x20
 #define PIC_DATA_MASTER    0x21
 
@@ -47,38 +47,38 @@
 
 union ipi_command {
     struct {
-        uint8_t vector;  // Bit 0..7
+        u8 vector;  // Bit 0..7
 #define DELIVERY_FIXED       0
 #define DELIVERY_LOWEST_PRIO 1
 #define DELIVERY_SMI         2
 #define DELIVERY_NMI         4
 #define DELIVERY_INIT        5
 #define DELIVERY_START_UP    6
-        uint8_t deliv_mode     : 3;   // Bit 8..10
-        uint8_t dest_mode      : 1;   // Bit 11
-        uint8_t deliv_status   : 1;   // Bit 12
-        uint8_t                : 1;   // Bit 13
-        uint8_t level          : 1;   // Bit 14
-        uint8_t trigger_mode   : 1;   // Bit 15
-        uint8_t                : 2;   // Bit 16..17
-        uint8_t dest_shorthand : 2;   // Bit 18..19
-        uint16_t               : 12;  // Bit 20..31
+        u8 deliv_mode     : 3;   // Bit 8..10
+        u8 dest_mode      : 1;   // Bit 11
+        u8 deliv_status   : 1;   // Bit 12
+        u8                : 1;   // Bit 13
+        u8 level          : 1;   // Bit 14
+        u8 trigger_mode   : 1;   // Bit 15
+        u8                : 2;   // Bit 16..17
+        u8 dest_shorthand : 2;   // Bit 18..19
+        u16               : 12;  // Bit 20..31
     };
-    uint32_t raw;
+    u32 raw;
 } __attribute__((packed));
 typedef union ipi_command ipi_command_t;
 
-static inline uint32_t get_apic_id() {
-    uint32_t eax, ebx, ecx, edx;
+static inline u32 get_apic_id() {
+    u32 eax, ebx, ecx, edx;
     __get_cpuid(1, &eax, &ebx, &ecx, &edx);
     return (ebx >> 24);
 }
 
-void send_ipi(uint32_t dest, ipi_command_t command);
-void write_lapic_register(uint32_t reg, uint32_t value);
-uint32_t read_lapic_register(uint32_t reg);
+void send_ipi(u32 dest, ipi_command_t command);
+void write_lapic_register(u32 reg, u32 value);
+u32 read_lapic_register(u32 reg);
 
 void send_eoi();
-int enable_lapic(uint32_t apicid);
+int enable_lapic(u32 apicid);
 
 #endif  // APIC_H

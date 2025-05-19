@@ -92,9 +92,9 @@ enum scancode {
     SCANCODE_F12 = 0x58
 };
 
-uint8_t last_scancode = 0;
+u8 last_scancode = 0;
 
-void handle_set1(uint8_t scancode) {
+void handle_set1(u8 scancode) {
     if (last_scancode == 0xE0) {
     } else {
         if (scancode == 0xE0) goto end;
