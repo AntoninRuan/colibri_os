@@ -59,7 +59,7 @@ union page_fault_error_code {
 typedef union page_fault_error_code pg_error_t;
 
 // Struct use to read the value of register after a pushal
-struct registers_t {
+struct registers {
     uint64_t cr2;
     uint64_t r15;
     uint64_t r14;
@@ -79,8 +79,10 @@ struct registers_t {
     uint64_t rax;
 };
 
+typedef struct registers registers_t;
+
 struct interrupt_frame {
-    struct registers_t registers;
+    registers_t registers;
 
     uint64_t vector_number;
     uint64_t error_code;
