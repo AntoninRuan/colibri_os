@@ -5,6 +5,7 @@
 #include <kernel/memory/physical_allocator.h>
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
+#include <kernel/scheduler.h>
 #include <kernel/x86-64.h>
 
 extern void *interrupt_dispatch(struct interrupt_frame *context) {
@@ -28,6 +29,7 @@ extern void *interrupt_dispatch(struct interrupt_frame *context) {
             break;
         case APIC_TIMER_INTERRUPT:
             log(DEBUG, "PING (apic)");
+            schedule(context);
             break;
 
         default:

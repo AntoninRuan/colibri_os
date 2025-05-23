@@ -1,3 +1,5 @@
+#include <kernel/arch/x86-64/memory_layout.h>
+#include <kernel/kernel.h>
 #include <kernel/log.h>
 #include <kernel/memory/memory_layout.h>
 #include <kernel/memory/physical_allocator.h>
@@ -9,7 +11,6 @@
 
 spinlock_t kernel_vmm_lock = {.name = "Kernel vmm"};
 vmm_info_t kernel_vmm = {0};
-vmm_info_t *current_vmm = &kernel_vmm;
 
 void vmm_init(vmm_info_t *vmm, void *pagetable, uintptr_t start, uintptr_t end,
               bool user, spinlock_t *lock) {
@@ -60,7 +61,7 @@ memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, u64 sz, u8 flags) {
         low_bound = PAGE_END(vmm->current_addr, PAGE_SIZE) + 1;
 
     found = low_bound;
-    base = PAGE_END(base, SMALL_PAGE_SIZE) + 1;
+    base = PAGE_START(base, PAGE_SIZE);
     if (found < base) found = base;
     if (found + length > high_bound) {
         // In case the last given address is too high, search for memory avaible
@@ -183,7 +184,24 @@ int vmm_free(vmm_info_t *vmm, memory_area_t *area) {
     return 0;
 }
 
+vmm_info_t *get_current_vmm() {
+    if (get_cpu()->proc)
+        return get_cpu()->proc->vmm;
+    else
+        return &kernel_vmm;
+}
+
+int update_area_access(memory_area_t *area, u8 flags) {
+    vmm_info_t *current_vmm = get_current_vmm();
+    area->flags = flags;
+    if (current_vmm->user_vmm) area->flags |= MEMORY_FLAG_USER;
+
+    return updatepages(current_vmm->root_pagetable, (void *)area->start,
+                       area->size, area->flags);
+}
+
 int on_demand_allocation(void *va) {
+    vmm_info_t *current_vmm = get_current_vmm();
     memory_area_t *area = get_memory_area(current_vmm, va);
     if (area == NULL) {
         // va is not an allocated address for current vmm
@@ -193,4 +211,8 @@ int on_demand_allocation(void *va) {
     void *page = kalloc();
     mappages(current_vmm->root_pagetable, va, PAGE_SIZE, page, area->flags);
     return 0;
+}
+
+int destroy(vmm_info_t *vmm) {
+    // Dealloc all ressources linked to the vmm
 }

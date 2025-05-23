@@ -18,6 +18,9 @@
 // pml4[509]
 #define PHYSICAL_OFFSET 0xFFFFFE8000000000
 
+#define LOWHALF_START BIG_PAGE_SIZE
+#define LOWHALF_END   0x800000000000
+
 #define VA2INDEX(va, level) (((u64)va >> (12 + level * 9)) & 0x1FF)
 #define VA2PML4_INDEX(va)   VA2INDEX(va, 3)
 #define VA2PDPT_INDEX(va)   VA2INDEX(va, 2)
@@ -60,6 +63,8 @@ static inline u64 pd_va(u16 pml4_offset, u16 pdpt_offset) {
 static inline u64 pt_va(u16 pml4_offset, u16 pdpt_offset, u16 pd_offset) {
     return get_va(PML4_RECURSE_ENTRY, pml4_offset, pdpt_offset, pd_offset, 0);
 }
+
+#define PAGE_FLAG_MASK 0x8000000000000006
 
 typedef union pml4e_t {
     struct {

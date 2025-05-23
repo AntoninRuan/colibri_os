@@ -1,7 +1,7 @@
 #ifndef ELF_H
 #define ELF_H
 
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 typedef u64 Elf64_Addr;
 typedef u64 Elf64_Off;
@@ -185,7 +185,7 @@ typedef struct {
 // Segments Attributes, p_flags
 #define PF_X        0x1
 #define PF_W        0x2
-#define PF_R        0x3
+#define PF_R        0x4
 #define PF_MASKOS   0x00FF0000
 #define PF_MASKPROC 0xFF000000
 

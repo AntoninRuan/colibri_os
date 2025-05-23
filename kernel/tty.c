@@ -25,8 +25,8 @@ int terminal_initialize(struct framebuffer *fb) {
     memcpy(&display, fb, sizeof(struct framebuffer));
     // display.addr is still a physical address
     // asking to map it to a virtual one
-    u64 vaddr =
-        (u64)map_mmio(NULL, display.addr, display.pitch * display.height, true);
+    void *vaddr =
+        map_mmio(NULL, (u64)display.addr, display.pitch * display.height, true);
     if (vaddr == 0) {
         logf(ERROR, "MMIO mapping for terminal buffer failed");
         return 1;

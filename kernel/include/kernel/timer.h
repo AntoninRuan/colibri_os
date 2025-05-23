@@ -2,7 +2,7 @@
 #define TIMER_H
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 void nanodelay(u64);
 void millidelay(u64);

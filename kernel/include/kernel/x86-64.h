@@ -58,6 +58,13 @@ union page_fault_error_code {
 };
 typedef union page_fault_error_code pg_error_t;
 
+struct xmm_reg {
+    u64 low;
+    u64 high;
+};
+
+typedef struct xmm_reg xmm_t;
+
 // Struct use to read the value of register after a pushal
 struct registers {
     u64 cr2;
@@ -77,6 +84,22 @@ struct registers {
     u64 rdx;
     u64 rcx;
     u64 rax;
+    xmm_t xmm0;
+    xmm_t xmm1;
+    xmm_t xmm2;
+    xmm_t xmm3;
+    xmm_t xmm4;
+    xmm_t xmm5;
+    xmm_t xmm6;
+    xmm_t xmm7;
+    xmm_t xmm8;
+    xmm_t xmm9;
+    xmm_t xmm10;
+    xmm_t xmm11;
+    xmm_t xmm12;
+    xmm_t xmm13;
+    xmm_t xmm14;
+    xmm_t xmm15;
 };
 
 typedef struct registers registers_t;
@@ -93,6 +116,8 @@ struct interrupt_frame {
     u64 iret_rsp;
     u64 iret_ss;
 };
+
+typedef struct interrupt_frame int_frame_t;
 
 static inline void outb(u16 port, u8 value) {
     asm volatile("outb %b0, %w1" : : "a"(value), "Nd"(port) : "memory");
@@ -120,6 +145,10 @@ static inline void wrmsr(u32 msr_id, u64 msr_value) {
 }
 
 static inline void __asm_pause() { asm volatile("pause" : : : "memory"); }
+
+static inline void change_pagetable(u64 pagetable_paddr) {
+    asm volatile("movq %0, %%cr3" : : "r"(pagetable_paddr));
+}
 
 void enable_nx_flag();
 

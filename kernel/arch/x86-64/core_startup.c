@@ -1,4 +1,5 @@
 #include <cpuid.h>
+#include <elf.h>
 #include <kernel/acpi.h>
 #include <kernel/arch/x86-64/apic.h>
 #include <kernel/arch/x86-64/apic_timer.h>
@@ -6,6 +7,7 @@
 #include <kernel/arch/x86-64/interrupt.h>
 #include <kernel/arch/x86-64/ioapic.h>
 #include <kernel/arch/x86-64/memory_layout.h>
+#include <kernel/arch/x86-64/tss.h>
 #include <kernel/debug/qemu.h>
 #include <kernel/kernel.h>
 #include <kernel/keyboard.h>
@@ -85,13 +87,15 @@ void ap_startup(u32 apicid) {
 
     load_idt();
     enable_lapic(apicid);
+    // TODO TSS with SMP
+    // setup_tss();
 
     acquire(&core_running_lock);
     kernel_status.core_running++;
     release(&core_running_lock);
 
     pop_off();
-    main();
+    main(NULL);
 }
 
 void bsp_startup(unsigned long magic, unsigned long addr, u32 apicid) {
@@ -103,15 +107,24 @@ void bsp_startup(unsigned long magic, unsigned long addr, u32 apicid) {
     struct multiboot_framebuffer *framebuffer = NULL;
     struct multiboot_acpi_old *acpi_old = NULL;
     struct multiboot_acpi_new *acpi_new = NULL;
+    struct multiboot_module *modules[64] = {0};
 
     struct multiboot_boot_information boot_info = {.memory_map = &memory_map,
                                                    .framebuffer = &framebuffer,
                                                    .acpi_old = &acpi_old,
-                                                   .acpi_new = &acpi_new};
+                                                   .acpi_new = &acpi_new,
+                                                   .module = modules,
+                                                   .module_size = 64};
 
     // addr is a physical addr but the identity mapping
     // used for the long jump is still active
     load_multiboot_info(magic, addr, &boot_info);
+
+    logf(DEBUG, "There are %d modules loaded alongside the kernel",
+         boot_info.module_size);
+
+    Elf64_Ehdr *initd =
+        (Elf64_Ehdr *)((u64)modules[0]->mod_start + PHYSICAL_OFFSET);
 
     kvminit(memory_map);
 
@@ -136,14 +149,17 @@ void bsp_startup(unsigned long magic, unsigned long addr, u32 apicid) {
 
     set_irq(IRQ_KEYBOARD, IRQ_VECTOR_KEYBOARD, DEST_PHYSICAL, 0, false);
 
-    memory_area_t *area = vmm_alloc_at(BIG_PAGE_SIZE, &kernel_vmm,
-                                       2 * PAGE_SIZE, MEMORY_FLAG_WRITE);
+    memory_area_t *area =
+        vmm_alloc(&kernel_vmm, 2 * PAGE_SIZE, MEMORY_FLAG_WRITE);
     if (!area) panic("Could not allocate memory for kernel heap");
     kernel_heap = (heap_node_t *)area->start;
     init_heap(kernel_heap, area->size);
 
+    setup_tss();
+
     terminal_initialize((void *)&framebuffer->fb + PHYSICAL_OFFSET);
 
     pop_off();
-    main();
+
+    main(initd);
 }

@@ -7,7 +7,6 @@
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
 #include <kernel/timer.h>
-#include <kernel/x86.h>
 #include <stddef.h>
 #include <stdint.h>
 

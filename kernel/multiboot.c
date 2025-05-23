@@ -4,7 +4,6 @@
 #include <kernel/tty.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 void load_multiboot_info(u32 magic, u64 addr,
                          struct multiboot_boot_information *boot_info) {
@@ -30,9 +29,10 @@ void load_multiboot_info(u32 magic, u64 addr,
             case MULTIBOOT_TAG_TYPE_BOOTLOADER_NAME:
                 break;
             case MULTIBOOT_TAG_TYPE_MODULES:
-                if (boot_info->module) {
-                    memcpy(&boot_info->module[module_index], header,
-                           sizeof(struct multiboot_module));
+                if (boot_info->module &&
+                    module_index < boot_info->module_size) {
+                    boot_info->module[module_index] =
+                        (struct multiboot_module *)header;
                     module_index++;
                 }
                 break;
@@ -137,6 +137,8 @@ void load_multiboot_info(u32 magic, u64 addr,
                 break;
         }
     }
+
+    boot_info->module_size = module_index;
 
     return;
 }

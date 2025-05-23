@@ -1,7 +1,7 @@
 #ifndef VGA_H
 #define VGA_H
 
-#include <stdint.h>
+#include <sys/cdefs.h>
 
 struct color {
     u8 red;
@@ -10,7 +10,7 @@ struct color {
 };
 
 struct framebuffer {
-    u64 addr;
+    void *addr;
     u32 pitch;  // bytes per horizontal line
     u32 width;
     u32 height;

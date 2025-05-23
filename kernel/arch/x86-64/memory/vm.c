@@ -82,7 +82,8 @@ void kvminit(struct multiboot_memory_map *mmap) {
     }
 
     init_phys_allocator(&ram_available);
-    vmm_init(&kernel_vmm, kernel_pml4, 0, 0x800000000000, false, NULL);
+    vmm_init(&kernel_vmm, kernel_pml4, 0xFFFF800000000000, 0xFFFFFE8000000000,
+             false, NULL);
 }
 
 u64 vmflag_to_x86flag(u64 flag) {
@@ -173,6 +174,22 @@ int mappages(pml4e_t *pagetable, void *va, u64 sz, void *pa, u8 flags) {
     return 0;
 }
 
+int updatepages(pml4e_t *pagetable, void *va, u64 sz, u8 flags) {
+    void *current = (void *)PAGE_START(va, SMALL_PAGE_SIZE);
+    void *end = (void *)PAGE_END(va + sz - 1, SMALL_PAGE_SIZE);
+    u64 x86_flags = vmflag_to_x86flag(flags);
+
+    for (; current < end; current += PAGE_SIZE) {
+        pte_t *descriptor = walk(pagetable, current, false);
+        if (descriptor == 0) return 1;
+
+        descriptor->raw &= ~PAGE_FLAG_MASK;
+        descriptor->raw |= x86_flags;
+    }
+
+    return 0;
+}
+
 // Unmap all pages starting from va up to PAGE_END(va+sz)
 // Eventually free the physical page if free is true
 // Return 0 on success, -1 on error
@@ -200,7 +217,7 @@ void *map_mmio(vmm_info_t *vmm, u64 physical, size_t size, bool writable) {
     u8 flag = 0;
     if (writable) flag |= MEMORY_FLAG_WRITE;
     if (vmm->user_vmm) flag |= MEMORY_FLAG_USER;
-    memory_area_t *area = vmm_alloc_at(64L * BIG_PAGE_SIZE, vmm, size, flag);
+    memory_area_t *area = vmm_alloc(vmm, size, flag);
     int result = mappages(vmm->root_pagetable, (void *)area->start, area->size,
                           (void *)physical, area->flags);
     if (result) {
@@ -209,4 +226,10 @@ void *map_mmio(vmm_info_t *vmm, u64 physical, size_t size, bool writable) {
     };
 
     return (void *)area->start;
+}
+
+void map_higher_half(pml4e_t *pagetable) {
+    for (u64 i = 256; i < 512; i++) {
+        memcpy(&pagetable[i], &kernel_pml4[i], sizeof(pml4e_t));
+    }
 }

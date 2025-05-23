@@ -1,6 +1,9 @@
-#include <kernel/arch/x86-64/hpet.h>
+#include <elf.h>
 #include <kernel/kernel.h>
 #include <kernel/log.h>
+#include <kernel/scheduler.h>
+#include <kernel/timer.h>
+#include <kernel/x86-64.h>
 #include <stdint.h>
 
 __attribute__((__noreturn__)) void panic(char *msg) {
@@ -33,4 +36,12 @@ void pop_off() {
     }
 }
 
-void main(void) { while (1); }
+void idle() { while (1); }
+
+void main(Elf64_Ehdr *initd) {
+    init_scheduler();
+    create_process("initd", initd, true);
+    arm_timer(1e9, true, true);
+
+    idle();
+}

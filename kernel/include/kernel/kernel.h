@@ -5,6 +5,8 @@
 
 #ifndef __is_asm
 
+#include <elf.h>
+#include <kernel/process.h>
 #include <sys/cdefs.h>
 
 struct kernel_status {
@@ -22,6 +24,8 @@ struct cpu_status {
 
     u32 push_off_count;
     u8 int_on;
+
+    proc_t *proc;
 };
 
 typedef struct cpu_status cpu_status_t;
@@ -46,7 +50,8 @@ void push_off();
 void pop_off();
 
 void panic(char *);
-void main();
+void idle();
+void main(Elf64_Ehdr *);
 
 #endif  // __is_asm
 #endif  // KERNEL_H

@@ -1,4 +1,30 @@
+.macro push_xmm xmm
+    sub $16, %rsp
+    movdqu %xmm\xmm, (%rsp)
+.endm
+
+.macro pop_xmm xmm
+    movdqu (%rsp), %xmm\xmm
+    add $16, %rsp
+.endm
+
 .macro push_reg
+    push_xmm 15
+    push_xmm 14
+    push_xmm 13
+    push_xmm 12
+    push_xmm 11
+    push_xmm 10
+    push_xmm 9
+    push_xmm 8
+    push_xmm 7
+    push_xmm 6
+    push_xmm 5
+    push_xmm 4
+    push_xmm 3
+    push_xmm 2
+    push_xmm 1
+    push_xmm 0
     pushq %rax
     pushq %rcx
     pushq %rdx
@@ -37,6 +63,22 @@
     popq %rdx
     popq %rcx
     popq %rax
+    pop_xmm 0
+    pop_xmm 1
+    pop_xmm 2
+    pop_xmm 3
+    pop_xmm 4
+    pop_xmm 5
+    pop_xmm 6
+    pop_xmm 7
+    pop_xmm 8
+    pop_xmm 9
+    pop_xmm 10
+    pop_xmm 11
+    pop_xmm 12
+    pop_xmm 13
+    pop_xmm 14
+    pop_xmm 15
 .endm
 
     .text
@@ -45,7 +87,7 @@ isr_wrapper:
 
     movq %rsp, %rdi             // Pass stack addr as an args for function call
     call interrupt_dispatch
-    mov %rax, %rsp              // Restore %esp to what it was
+    mov %rax, %rsp              // Restore %rsp to what it was
 
     pop_reg
 

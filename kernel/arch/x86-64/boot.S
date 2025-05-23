@@ -211,8 +211,8 @@ kernel_p2:
     // the first one being the mandatory null one
     // 2 for kernel code and data
     // 2 for user code and data
-    .global gdtr64
-    .global gdtr32
+    .global gdt64
+    .global gdt_tss_entry
 gdt64:
     .quad 0
 
@@ -229,7 +229,7 @@ gdt64:
     .quad (FLAGS | ACCESS_USER | ACCESS_CODE | LIMIT)
     .quad (FLAGS | ACCESS_USER | LIMIT)
 
-    // Add placeholder for task state segment
+gdt_tss_entry:
     .quad 0
     .quad 0
 

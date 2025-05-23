@@ -13,7 +13,9 @@ bool holding(spinlock_t *lock) {
 
 void acquire(spinlock_t *lock) {
     push_off();
-    bool log = memcmp(lock->name, "QEMU serial", strlen("QEMU serial"));
+    bool log = false;
+    if (lock->name)
+        log = memcmp(lock->name, "QEMU serial", strlen("QEMU serial"));
 
     if (holding(lock)) {
         if (log)

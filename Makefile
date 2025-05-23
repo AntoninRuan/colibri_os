@@ -68,7 +68,7 @@ $(LIBDIR)/libk.a: $(LIBK_OBJS)
 
 $(BUILD)%.libk.o: %.c Makefile libc/make.config
 	@mkdir -p $(@D)
-	$(CC) -MD -c $< -o $@ $(LIBK_CFLAGS) $(CODE_MODEL)
+	$(CC) -MD -c $< -o $@ $(LIBK_CFLAGS) $(CODE_MODEL) -D__arch_$(HOSTARCH_QEMU)
 
 # Making the kernel
 include kernel/make.config

@@ -1,4 +1,5 @@
 set timeout=0
 menuentry "OS_NAME" {
     multiboot2 /boot/OS_NAME.kernel
+    module2 /boot/userspace initd
 }
