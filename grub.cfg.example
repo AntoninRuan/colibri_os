@@ -1,0 +1,4 @@
+set timeout=0
+menuentry "OS_NAME" {
+    multiboot2 /boot/OS_NAME.kernel
+}

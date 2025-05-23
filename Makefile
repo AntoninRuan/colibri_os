@@ -49,10 +49,9 @@ qemu-gdb: $(OS_NAME).iso .gdbinit
 $(OS_NAME).iso: $(BOOTDIR)/grub/grub.cfg $(BOOTDIR)/$(OS_NAME).kernel
 	grub-mkrescue -o $(OS_NAME).iso $(SYSROOT)
 
-$(BOOTDIR)/grub/grub.cfg: Makefile
+$(BOOTDIR)/grub/grub.cfg: grub.cfg.example
 	@mkdir -p $(BOOTDIR)/grub
-	echo -e 'set timeout=0' > $(SYSROOT)/boot/grub/grub.cfg
-	echo -e 'menuentry "$(OS_NAME)" {\n\tmultiboot2 /boot/$(OS_NAME).kernel\n}\n' >> $(SYSROOT)/boot/grub/grub.cfg
+	sed "s/OS_NAME/$(OS_NAME)/g" $< > $@
 
 # Making libk (and in the future libc)
 include libc/make.config
