@@ -39,8 +39,11 @@ void pop_off() {
 void idle() { while (1); }
 
 void main(Elf64_Ehdr *initd) {
-    init_scheduler();
-    create_process("initd", initd, true);
+    if (get_cpu()->id == kernel_status.bsp_id) {
+        init_scheduler();
+        create_process("initd", initd, true);
+    }
+
     arm_timer(1e9, true, true);
 
     idle();

@@ -29,6 +29,8 @@ void init_scheduler() { lst_init(&schedule_lst); }
 proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc) {
     proc_t *current = get_cpu()->proc;
     proc_t *proc = alloc(NULL, sizeof(proc_t));
+    if (!proc) return NULL;
+
     acquire(&free_pid_lock);
     proc->id = next_free_pid++;
     release(&free_pid_lock);
@@ -38,20 +40,25 @@ proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc) {
     proc->context.iret_flags = 0x202;
     proc->context.iret_cs = 0x18 | 3;
     proc->context.iret_ss = 0x20 | 3;
+    strncpy(proc->name, name, PROC_NAME_MAX_LEN);
 
-    pml4e_t *pagetable = kalloc() + PHYSICAL_OFFSET;
+    void *pagetable = kalloc() + PHYSICAL_OFFSET;
+    if (!pagetable) goto free_proc;
+
     map_higher_half(pagetable);
-    change_pagetable((u64)pagetable - PHYSICAL_OFFSET);
+    change_pagetable(pagetable - PHYSICAL_OFFSET);
 
     vmm_info_t *vmm = alloc(NULL, sizeof(vmm_info_t));
+    if (!vmm) goto free_pt;
+
     spinlock_t *vmm_lock = alloc(NULL, sizeof(spinlock_t));
+    if (!vmm_lock) goto free_vmm;
+
     memset(vmm_lock, 0, sizeof(spinlock_t));
     vmm_init(vmm, pagetable, 0, LOWHALF_END, user_proc, vmm_lock);
-
     proc->vmm = vmm;
 
     get_cpu()->proc = proc;
-    logf(DEBUG, "Loading segments of %s", name);
     for (u64 i = 0; i < elf->e_phnum; i++) {
         Elf64_Phdr *seg = get_segment(elf, i);
         if (seg->p_type == PT_LOAD) {
@@ -61,28 +68,14 @@ proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc) {
             memory_area_t *area =
                 vmm_alloc_at(seg->p_vaddr, proc->vmm, seg->p_memsz,
                              mem_flag | MEMORY_FLAG_WRITE);
-            if (!area || area->start != seg->p_vaddr) {
-                free(vmm_lock);
-                kfree(pagetable - PHYSICAL_OFFSET);
-                destroy(proc->vmm);
-                free(vmm);
-                free(proc);
-                return NULL;
-            }
+            if (!area || area->start != seg->p_vaddr) goto free_vmm_lock;
             memcpy((void *)area->start, ((void *)elf) + seg->p_offset,
                    seg->p_filesz);
             update_area_access(area, mem_flag);
         }
     }
     memory_area_t *area = vmm_alloc(proc->vmm, PAGE_SIZE, MEMORY_FLAG_WRITE);
-    if (!area) {
-        free(vmm_lock);
-        kfree(pagetable - PHYSICAL_OFFSET);
-        destroy(proc->vmm);
-        free(vmm);
-        free(proc);
-        return NULL;
-    }
+    if (!area) goto free_vmm_lock;
 
     memset((void *)area->start, 0, area->size);
     proc->stack = area;
@@ -92,7 +85,27 @@ proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc) {
     get_cpu()->proc = current;
     lst_push_end(&schedule_lst, proc);
 
+    if (current)
+        change_pagetable(current->vmm->root_pagetable - PHYSICAL_OFFSET);
+
     return proc;
+
+free_vmm_lock:
+    free(vmm_lock);
+    get_cpu()->proc = current;
+
+free_vmm:
+    clear_vmm(proc->vmm);
+    free(vmm);
+
+free_pt:
+    change_pagetable(current->vmm->root_pagetable - PHYSICAL_OFFSET);
+    kfree(pagetable - PHYSICAL_OFFSET);
+
+free_proc:
+    free(proc);
+
+    return NULL;
 }
 
 void schedule(int_frame_t *int_frame) {
@@ -118,7 +131,7 @@ void schedule(int_frame_t *int_frame) {
 
     get_cpu()->proc = new_proc;
     memcpy(int_frame, &new_proc->context, sizeof(int_frame_t));
-    change_pagetable((u64)new_proc->vmm->root_pagetable - PHYSICAL_OFFSET);
+    change_pagetable(new_proc->vmm->root_pagetable - PHYSICAL_OFFSET);
 
     int_frame->registers.rsp = rsp;
     return;

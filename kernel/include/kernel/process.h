@@ -8,6 +8,8 @@
 #include <kernel/memory/vmm.h>
 #include <stdint.h>
 
+#define PROC_NAME_MAX_LEN 256
+
 enum process_state { ACTIVE, SLEEPING, WAITING, DEAD };
 
 typedef enum process_state process_state_t;
@@ -17,6 +19,7 @@ struct process {
     struct lst _;
 
     u64 id;
+    char name[PROC_NAME_MAX_LEN];
     process_state_t state;
     int_frame_t context;
 

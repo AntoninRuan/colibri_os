@@ -146,8 +146,9 @@ static inline void wrmsr(u32 msr_id, u64 msr_value) {
 
 static inline void __asm_pause() { asm volatile("pause" : : : "memory"); }
 
-static inline void change_pagetable(u64 pagetable_paddr) {
-    asm volatile("movq %0, %%cr3" : : "r"(pagetable_paddr));
+static inline void change_pagetable(void* pagetable) {
+    u64 pt_addr = (u64)pagetable;
+    asm volatile("movq %0, %%cr3" : : "r"(pt_addr));
 }
 
 void enable_nx_flag();

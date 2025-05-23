@@ -213,6 +213,23 @@ int on_demand_allocation(void *va) {
     return 0;
 }
 
-int destroy(vmm_info_t *vmm) {
-    // Dealloc all ressources linked to the vmm
+// Remove all allocated memory in vmm
+int clear_vmm(vmm_info_t *vmm) {
+    vmm_container_t *current = vmm->root_container;
+
+    while (current) {
+        vmm_container_t *old = current;
+        current = current->next;
+
+        kfree((void *)old - PHYSICAL_OFFSET);
+    }
+
+    vmm->root_container = NULL;
+    vmm->current_container = NULL;
+    vmm->current_addr = vmm->vmm_data_start;
+    vmm->current_index = 0;
+    vmm->current_area = NULL;
+    vmm->first_area = NULL;
+
+    return 0;
 }

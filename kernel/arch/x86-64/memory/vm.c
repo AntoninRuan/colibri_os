@@ -98,7 +98,7 @@ u64 vmflag_to_x86flag(u64 flag) {
 // Return physical-mapped address of the page descriptor for virtual
 // address va in pagetable, if alloc is true create the necessary
 // intermediate, else if one is missing return null
-void *walk(pml4e_t *pagetable, void *va, bool alloc) {
+void *walk(void *pagetable, void *va, bool alloc) {
     u64 addr = (u64)va;
     pdpte_t *current_pt = (pdpte_t *)pagetable;
     pdpte_t *entry;
@@ -150,7 +150,7 @@ void freewalk(void *pagetable, u8 level) {
 // Map virtual address va in pagetable to pa up to va + sz
 // Address are rounded to be page aligned
 // Return 0 on success, -1 on error
-int mappages(pml4e_t *pagetable, void *va, u64 sz, void *pa, u8 flags) {
+int mappages(void *pagetable, void *va, u64 sz, void *pa, u8 flags) {
     void *current = (void *)PAGE_START(va, PAGE_SIZE);
     void *current_pa = (void *)PAGE_START(pa, PAGE_SIZE);
     void *end = (void *)PAGE_END(va + sz - 1, PAGE_SIZE);
@@ -174,7 +174,7 @@ int mappages(pml4e_t *pagetable, void *va, u64 sz, void *pa, u8 flags) {
     return 0;
 }
 
-int updatepages(pml4e_t *pagetable, void *va, u64 sz, u8 flags) {
+int updatepages(void *pagetable, void *va, u64 sz, u8 flags) {
     void *current = (void *)PAGE_START(va, SMALL_PAGE_SIZE);
     void *end = (void *)PAGE_END(va + sz - 1, SMALL_PAGE_SIZE);
     u64 x86_flags = vmflag_to_x86flag(flags);
@@ -193,7 +193,7 @@ int updatepages(pml4e_t *pagetable, void *va, u64 sz, u8 flags) {
 // Unmap all pages starting from va up to PAGE_END(va+sz)
 // Eventually free the physical page if free is true
 // Return 0 on success, -1 on error
-int unmappages(pml4e_t *pagetable, void *va, u64 sz, bool free) {
+int unmappages(void *pagetable, void *va, u64 sz, bool free) {
     void *current = (void *)PAGE_START(va, SMALL_PAGE_SIZE);
     void *end = (void *)PAGE_END(va + sz - 1, SMALL_PAGE_SIZE);
 
@@ -228,7 +228,8 @@ void *map_mmio(vmm_info_t *vmm, u64 physical, size_t size, bool writable) {
     return (void *)area->start;
 }
 
-void map_higher_half(pml4e_t *pagetable) {
+void map_higher_half(void *pt_addr) {
+    pml4e_t *pagetable = (pml4e_t *)pt_addr;
     for (u64 i = 256; i < 512; i++) {
         memcpy(&pagetable[i], &kernel_pml4[i], sizeof(pml4e_t));
     }
