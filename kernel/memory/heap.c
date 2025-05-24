@@ -81,7 +81,8 @@ void free(void *ptr) {
         if (node->size + ptr == node->next) {
             // Merge with the right node
             heap_node_t *merging = node->next;
-            merging->next->prev = node;
+            if (merging->next)
+                merging->next->prev = node;
             node->next = merging->next;
 
             node->size += merging->size + sizeof(heap_node_t);
