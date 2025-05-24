@@ -20,15 +20,23 @@
 
 ### File system
 
-- [ ] Parsing ELF files
+- [x] Parsing ELF files
 - [ ] VFS
 - [ ] Driver for fat32
 - [ ] Driver for ext4
 
 ## Scheduling
 
-- [ ] Implement a scheduler
-- [ ] Start userspace programs
+- [x] Implement a scheduler
+- [ ] Implement priority based scheduler
+- [ ] Threads
+
+## Userspace
+
+- [x] Start userspace programs
+- [ ] Memory barrier in programs address space
+- [ ] Basic libc
+- [ ] Syscalls
 
 ## Interrupts
 
@@ -43,10 +51,12 @@
 - [x] Add page allocator
 - [x] Virtual Memory Manager
 - [x] Kernel Heap
+- [x] TSS implementation for hardware int when in user mode
 
 ## SMP
 
 - [x] Detection and init of other cores
+- [ ] TSS adaptation for SMP
 - [ ] Synchronisation (spinlock, semaphore, ...)
 
 ## CPU Extensions
