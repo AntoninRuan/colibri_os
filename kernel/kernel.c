@@ -2,6 +2,7 @@
 #include <kernel/kernel.h>
 #include <kernel/log.h>
 #include <kernel/scheduler.h>
+#include <kernel/process.h>
 #include <kernel/timer.h>
 #include <kernel/x86-64.h>
 #include <stdint.h>
@@ -44,7 +45,8 @@ __attribute__((__noreturn__)) void idle() {
 void main(Elf64_Ehdr *initd) {
     if (get_cpu()->id == kernel_status.bsp_id && initd) {
         init_scheduler();
-        create_process("initd", initd, true);
+        proc_t *init_p = create_process("initd", initd, true);
+        if (init_p) run_proc(init_p);
     }
 
     arm_timer(1e9, true, true);

@@ -4,6 +4,7 @@
 #ifdef __arch_x86_64
 #include <kernel/x86-64.h>
 #endif
+#include <elf.h>
 #include <kernel/list.h>
 #include <kernel/memory/vmm.h>
 #include <stdint.h>
@@ -27,5 +28,7 @@ struct process {
     memory_area_t *stack;
     memory_area_t *heap_start;
 };
+
+proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc);
 
 #endif  // PROCESS_H

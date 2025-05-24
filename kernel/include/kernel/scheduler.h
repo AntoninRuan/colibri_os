@@ -6,7 +6,7 @@
 #include <kernel/x86-64.h>
 
 void init_scheduler();
-proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc);
+void run_proc(proc_t *p);
 void schedule(int_frame_t *int_frame);
 
 #endif  // SCHEDULER_H

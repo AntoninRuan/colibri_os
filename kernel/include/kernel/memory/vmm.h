@@ -61,6 +61,7 @@ memory_area_t *vmm_alloc(vmm_info_t *vmm, u64 sz, u8 flags);
 int vmm_free(vmm_info_t *vmm, memory_area_t *area);
 int update_area_access(memory_area_t *, u8 flags);
 int on_demand_allocation(void *va);
-int clear_vmm(vmm_info_t *vmm);
+vmm_info_t *vmm_create(uintptr_t start, uintptr_t end, bool user);
+void vmm_destroy(vmm_info_t *vmm);
 
 #endif  // VMM_H

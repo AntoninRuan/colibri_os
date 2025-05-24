@@ -1,6 +1,7 @@
 #include <kernel/arch/x86-64/memory_layout.h>
 #include <kernel/kernel.h>
 #include <kernel/log.h>
+#include <kernel/memory/heap.h>
 #include <kernel/memory/memory_layout.h>
 #include <kernel/memory/physical_allocator.h>
 #include <kernel/memory/vm.h>
@@ -219,8 +220,34 @@ int on_demand_allocation(void *va) {
     return 0;
 }
 
+// Create a vmm, need to have kernel heap setup
+vmm_info_t *vmm_create(uintptr_t start, uintptr_t end, bool user) {
+    vmm_info_t *vmm = alloc(NULL, sizeof(vmm_info_t));
+    if (!vmm) return NULL;
+
+    void *pagetable = kalloc();
+    if (!pagetable) goto free_vmm;
+    pagetable += PHYSICAL_OFFSET;
+
+    spinlock_t *vmm_lock = alloc(NULL, sizeof(spinlock_t));
+    if (!vmm_lock) goto free_pt;
+    memset(vmm_lock, 0, sizeof(spinlock_t));
+
+    vmm_init(vmm, pagetable, start, end, user, vmm_lock);
+
+    return vmm;
+
+free_pt:
+    kfree(pagetable - PHYSICAL_OFFSET);
+
+free_vmm:
+    free(vmm);
+
+    return NULL;
+}
+
 // Remove all allocated memory in vmm
-int clear_vmm(vmm_info_t *vmm) {
+void vmm_destroy(vmm_info_t *vmm) {
     memory_area_t *cur_area = vmm->first_area;
     while (cur_area) {
         unmappages(vmm->root_pagetable, (void *)cur_area->start, cur_area->size,
@@ -237,12 +264,7 @@ int clear_vmm(vmm_info_t *vmm) {
         kfree((void *)old - PHYSICAL_OFFSET);
     }
 
-    vmm->root_container = NULL;
-    vmm->current_container = NULL;
-    vmm->current_addr = vmm->vmm_data_start;
-    vmm->current_index = 0;
-    vmm->current_area = NULL;
-    vmm->first_area = NULL;
-
-    return 0;
+    free(vmm->lock);
+    kfree(vmm->root_pagetable - PHYSICAL_OFFSET);
+    free(vmm);
 }
