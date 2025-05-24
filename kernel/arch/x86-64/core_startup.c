@@ -121,9 +121,18 @@ void bsp_startup(unsigned long magic, unsigned long addr, u32 apicid) {
     load_multiboot_info(magic, addr, &boot_info);
 
     Elf64_Ehdr *initd = NULL;
-    if (boot_info.module_size > 0) {
-            initd = (Elf64_Ehdr *)((u64)modules[0]->mod_start + PHYSICAL_OFFSET);
+    for (u64 i = 0; i < boot_info.module_size; i++) {
+        if (!strncmp("initd", modules[i]->string, 6)) {
+            initd =
+                (Elf64_Ehdr *)((u64)modules[i]->mod_start + PHYSICAL_OFFSET);
+            break;
+        }
     }
+
+    if (initd)
+        log(INFO, "Found initd module");
+    else
+        log(WARNING, "No initd module found");
 
     kvminit(memory_map);
 
