@@ -36,10 +36,13 @@ void pop_off() {
     }
 }
 
-void idle() { while (1); }
+__attribute__((__noreturn__)) void idle() {
+    while (1);
+    __builtin_unreachable();
+}
 
 void main(Elf64_Ehdr *initd) {
-    if (get_cpu()->id == kernel_status.bsp_id) {
+    if (get_cpu()->id == kernel_status.bsp_id && initd) {
         init_scheduler();
         create_process("initd", initd, true);
     }

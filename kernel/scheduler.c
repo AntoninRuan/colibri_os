@@ -21,10 +21,14 @@ typedef struct lst proc_lst;
 u64 next_free_pid = 0;
 spinlock_t free_pid_lock = {.name = "Free pid lock"};
 
+bool scheduler_ready = false;
 proc_lst schedule_lst;
 spinlock_t proc_list_lock = {.name = "Proc list lock"};
 
-void init_scheduler() { lst_init(&schedule_lst); }
+void init_scheduler() {
+    lst_init(&schedule_lst);
+    scheduler_ready = true;
+}
 
 proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc) {
     proc_t *current = get_cpu()->proc;
@@ -109,6 +113,7 @@ free_proc:
 }
 
 void schedule(int_frame_t *int_frame) {
+    if (!scheduler_ready) return;
     if (lst_empty(&schedule_lst)) return;
 
     acquire(&proc_list_lock);

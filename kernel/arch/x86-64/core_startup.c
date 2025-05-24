@@ -79,7 +79,7 @@ void ap_startup(u32 apicid) {
         if (!nx_flag_supported) {
             panic(
                 "Error while setting up CPU %d, it does not suppord nx_flag "
-                "but nx_flag is enabled on BPS");
+                "but nx_flag is enabled on BSP");
         } else {
             enable_nx_flag();
         }
@@ -120,11 +120,10 @@ void bsp_startup(unsigned long magic, unsigned long addr, u32 apicid) {
     // used for the long jump is still active
     load_multiboot_info(magic, addr, &boot_info);
 
-    logf(DEBUG, "There are %d modules loaded alongside the kernel",
-         boot_info.module_size);
-
-    Elf64_Ehdr *initd =
-        (Elf64_Ehdr *)((u64)modules[0]->mod_start + PHYSICAL_OFFSET);
+    Elf64_Ehdr *initd = NULL;
+    if (boot_info.module_size > 0) {
+            initd = (Elf64_Ehdr *)((u64)modules[0]->mod_start + PHYSICAL_OFFSET);
+    }
 
     kvminit(memory_map);
 

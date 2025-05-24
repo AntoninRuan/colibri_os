@@ -201,7 +201,13 @@ int update_area_access(memory_area_t *area, u8 flags) {
 }
 
 int on_demand_allocation(void *va) {
-    vmm_info_t *current_vmm = get_current_vmm();
+    vmm_info_t *current_vmm;
+    if ((u64)va >= 0xFFFF800000000000) {
+        current_vmm = &kernel_vmm;
+    } else {
+        current_vmm = get_current_vmm();
+    }
+
     memory_area_t *area = get_memory_area(current_vmm, va);
     if (area == NULL) {
         // va is not an allocated address for current vmm
@@ -215,11 +221,18 @@ int on_demand_allocation(void *va) {
 
 // Remove all allocated memory in vmm
 int clear_vmm(vmm_info_t *vmm) {
-    vmm_container_t *current = vmm->root_container;
+    memory_area_t *cur_area = vmm->first_area;
+    while (cur_area) {
+        unmappages(vmm->root_pagetable, (void *)cur_area->start, cur_area->size,
+                   true);
 
-    while (current) {
-        vmm_container_t *old = current;
-        current = current->next;
+        cur_area = cur_area->next;
+    }
+
+    vmm_container_t *cur_container = vmm->root_container;
+    while (cur_container) {
+        vmm_container_t *old = cur_container;
+        cur_container = cur_container->next;
 
         kfree((void *)old - PHYSICAL_OFFSET);
     }
