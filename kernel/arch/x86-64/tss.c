@@ -41,7 +41,7 @@ tss_t *tss;
 #define FLAG_TYPE_TSS_AVAIL (0x9)
 
 void setup_tss() {
-    tss = alloc(NULL, sizeof(tss_t));
+    tss = alloc(sizeof(tss_t));
     memset(tss, 0, sizeof(tss_t));
 
     tss_descriptor_t *desc = (tss_descriptor_t *)&gdt_tss_entry;

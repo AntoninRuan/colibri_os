@@ -44,7 +44,7 @@ int terminal_initialize(struct framebuffer *fb) {
     fg = (u16)0xFFFFFF;
     bg = 0;
 
-    tty_buffer = alloc(NULL, TERMINAL_HEIGHT * (TERMINAL_WIDTH + 1));
+    tty_buffer = alloc(TERMINAL_HEIGHT * (TERMINAL_WIDTH + 1));
 
     return terminal_clear();
 }

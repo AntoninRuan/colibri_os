@@ -3,6 +3,7 @@
 #include <kernel/memory/vmm.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 heap_node_t *kernel_heap;
 
@@ -14,8 +15,8 @@ void init_heap(heap_node_t *heap, size_t size) {
     logf(INFO, "Kernel heap initialized with size 0x%x", size);
 }
 
-void *alloc(heap_node_t *heap, size_t size) {
-    if (heap == NULL) heap = kernel_heap;
+void *alloc(size_t size) {
+    heap_node_t *heap = kernel_heap;
 
     void *result = NULL;
     heap_node_t *cur = heap;
@@ -50,19 +51,83 @@ void *alloc(heap_node_t *heap, size_t size) {
     result = (void *)cur + sizeof(heap_node_t);
 
     heap_node_t *next = NULL;
-    if (cur->size > size) {
+    if (cur->size > size + sizeof(heap_node_t)) {
         next = (heap_node_t *)(result + size);
         next->size = cur->size - size - sizeof(heap_node_t);
         next->status = FREE;
         next->prev = cur;
         next->next = cur->next;
         cur->next = next;
+        cur->size = size;
     }
 
     cur->status = USED;
-    cur->size = size;
 
     return result;
+}
+
+// Attempt to merge node with the following one
+void merge_right(heap_node_t *node) {
+    void *ptr = (void *)node + sizeof(heap_node_t);
+    if (node->next && node->next->status == FREE) {
+        if (node->size + ptr == node->next) {
+            // Merge with the right node
+            heap_node_t *merging = node->next;
+            if (merging->next) merging->next->prev = node;
+            node->next = merging->next;
+
+            node->size += merging->size + sizeof(heap_node_t);
+        }
+    }
+}
+
+void *realloc(void *ptr, size_t sz) {
+    if (ptr == NULL) return alloc(sz);
+    if (sz == 0) {
+        free(ptr);
+        return NULL;
+    }
+
+    heap_node_t *node = (heap_node_t *)(ptr - sizeof(heap_node_t));
+
+    if (sz < node->size) {
+        if (node->size - sz < sizeof(heap_node_t)) return ptr;
+
+        heap_node_t *freed = (heap_node_t *)(ptr + sz);
+        freed->status = FREE;
+        freed->next = node->next;
+        freed->prev = node;
+        freed->size = node->size - sz - sizeof(heap_node_t);
+
+        node->size = sz;
+        if (node->next) node->next->prev = freed;
+        node->next = freed;
+
+        merge_right(freed);
+        return ptr;
+    }
+
+    if (!node->next || node->next->status != FREE
+        || node->size + ptr != node->next
+        || node->next->size + node->size < sz) {
+        void *new_ptr = alloc(sz);
+        memmove(new_ptr, ptr, node->size);
+        free(ptr);
+        return new_ptr;
+    }
+
+    heap_node_t *right = (heap_node_t *)(ptr + sz);
+    right->status = FREE;
+    right->size = node->size + node->next->size - sz;
+    right->next = node->next->next;
+    right->prev = node;
+
+    node->next = right;
+    node->size = sz;
+    if (right->next)
+        right->next->prev = right;
+
+    return ptr;
 }
 
 void free(void *ptr) {
@@ -76,18 +141,7 @@ void free(void *ptr) {
     if (node->status == FREE) return;
 
     node->status = FREE;
-
-    if (node->next && node->next->status == FREE) {
-        if (node->size + ptr == node->next) {
-            // Merge with the right node
-            heap_node_t *merging = node->next;
-            if (merging->next)
-                merging->next->prev = node;
-            node->next = merging->next;
-
-            node->size += merging->size + sizeof(heap_node_t);
-        }
-    }
+    merge_right(node);
 
     if (node->prev && node->prev->status == FREE) {
         heap_node_t *prev = node->prev;

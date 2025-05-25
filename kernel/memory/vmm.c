@@ -222,14 +222,14 @@ int on_demand_allocation(void *va) {
 
 // Create a vmm, need to have kernel heap setup
 vmm_info_t *vmm_create(uintptr_t start, uintptr_t end, bool user) {
-    vmm_info_t *vmm = alloc(NULL, sizeof(vmm_info_t));
+    vmm_info_t *vmm = alloc(sizeof(vmm_info_t));
     if (!vmm) return NULL;
 
     void *pagetable = kalloc();
     if (!pagetable) goto free_vmm;
     pagetable += PHYSICAL_OFFSET;
 
-    spinlock_t *vmm_lock = alloc(NULL, sizeof(spinlock_t));
+    spinlock_t *vmm_lock = alloc(sizeof(spinlock_t));
     if (!vmm_lock) goto free_pt;
     memset(vmm_lock, 0, sizeof(spinlock_t));
 

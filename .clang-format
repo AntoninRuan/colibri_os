@@ -4,6 +4,7 @@ BasedOnStyle: google
 AlignConsecutiveBitFields: AcrossComments
 AlignConsecutiveMacros: AcrossComments
 AlignEscapedNewlines: LeftWithLastLine
+BreakBeforeBinaryOperators: NonAssignment
 DerivePointerAlignment: true
 PointerAlignment: Left
 IndentCaseLabels: true
