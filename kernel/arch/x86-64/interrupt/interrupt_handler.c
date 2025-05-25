@@ -6,7 +6,6 @@
 #include <kernel/memory/physical_allocator.h>
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
-#include <kernel/scheduler.h>
 #include <kernel/x86-64.h>
 
 extern void *interrupt_dispatch(struct interrupt_frame *context) {

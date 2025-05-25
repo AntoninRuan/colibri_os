@@ -2,7 +2,6 @@
 #include <kernel/kernel.h>
 #include <kernel/log.h>
 #include <kernel/memory/vmm.h>
-#include <kernel/scheduler.h>
 #include <kernel/process.h>
 #include <kernel/timer.h>
 #include <kernel/x86-64.h>
@@ -46,12 +45,11 @@ __attribute__((__noreturn__)) void idle() {
 void main(Elf64_Ehdr *initd) {
     change_current_vmm(&kernel_vmm);
     if (get_cpu()->id == kernel_status.bsp_id && initd) {
-        init_scheduler();
         proc_t *init_p = create_process("initd", initd, true);
         if (init_p) run_proc(init_p);
     }
 
-    arm_timer(1e9, true, true);
+    arm_timer(1e8, true, true);
 
     idle();
 }
