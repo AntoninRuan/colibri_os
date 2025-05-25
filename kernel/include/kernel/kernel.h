@@ -25,7 +25,8 @@ struct cpu_status {
     u32 push_off_count;
     u8 int_on;
 
-    proc_t *proc;
+    thread_t *thread;
+    vmm_info_t *vmm;
 };
 
 typedef struct cpu_status cpu_status_t;

@@ -7,6 +7,7 @@
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
 #include <kernel/sync.h>
+#include <kernel/x86-64.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -185,20 +186,27 @@ int vmm_free(vmm_info_t *vmm, memory_area_t *area) {
     return 0;
 }
 
-vmm_info_t *get_current_vmm() {
-    if (get_cpu()->proc)
-        return get_cpu()->proc->vmm;
-    else
-        return &kernel_vmm;
+
+int update_area_access(vmm_info_t *vmm, memory_area_t *area, u8 flags) {
+    area->flags = flags;
+    if (vmm->user_vmm) area->flags |= MEMORY_FLAG_USER;
+
+    return updatepages(vmm->root_pagetable, (void *)area->start,
+                       area->size, area->flags);
 }
 
-int update_area_access(memory_area_t *area, u8 flags) {
-    vmm_info_t *current_vmm = get_current_vmm();
-    area->flags = flags;
-    if (current_vmm->user_vmm) area->flags |= MEMORY_FLAG_USER;
+void change_current_vmm(vmm_info_t *vmm) {
+    get_cpu()->vmm = vmm;
+    if (vmm != &kernel_vmm) {
+        change_pagetable(vmm->root_pagetable - PHYSICAL_OFFSET);
+    }
+}
 
-    return updatepages(current_vmm->root_pagetable, (void *)area->start,
-                       area->size, area->flags);
+vmm_info_t *get_current_vmm() {
+    if (get_cpu()->vmm)
+        return get_cpu()->vmm;
+    else
+        return &kernel_vmm;
 }
 
 int on_demand_allocation(void *va) {

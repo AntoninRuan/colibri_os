@@ -18,7 +18,7 @@
 // pml4[509]
 #define PHYSICAL_OFFSET 0xFFFFFE8000000000
 
-#define LOWHALF_START BIG_PAGE_SIZE
+#define LOWHALF_START MEDIUM_PAGE_SIZE
 #define LOWHALF_END   0x800000000000
 
 #define VA2INDEX(va, level) (((u64)va >> (12 + level * 9)) & 0x1FF)

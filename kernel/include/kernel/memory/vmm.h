@@ -51,7 +51,6 @@ struct vmm_info {
 typedef struct vmm_info vmm_info_t;
 
 extern vmm_info_t kernel_vmm;
-extern vmm_info_t *current_vmm;
 
 void vmm_init(vmm_info_t *vmm, void *pagetable, uintptr_t start, uintptr_t end,
               bool user, spinlock_t *spinlock);
@@ -59,7 +58,8 @@ memory_area_t *get_memory_area(vmm_info_t *vmm, void *va);
 memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *, u64 sz, u8 flags);
 memory_area_t *vmm_alloc(vmm_info_t *vmm, u64 sz, u8 flags);
 int vmm_free(vmm_info_t *vmm, memory_area_t *area);
-int update_area_access(memory_area_t *, u8 flags);
+int update_area_access(vmm_info_t *, memory_area_t *, u8 flags);
+void change_current_vmm(vmm_info_t *);
 int on_demand_allocation(void *va);
 vmm_info_t *vmm_create(uintptr_t start, uintptr_t end, bool user);
 void vmm_destroy(vmm_info_t *vmm);

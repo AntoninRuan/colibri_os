@@ -3,32 +3,59 @@
 
 #ifdef __arch_x86_64
 #include <kernel/x86-64.h>
-#endif
+#endif  // __arch_x86_64
+
 #include <elf.h>
 #include <kernel/list.h>
 #include <kernel/memory/vmm.h>
-#include <stdint.h>
+#include <sys/cdefs.h>
 
-#define PROC_NAME_MAX_LEN 256
+#define PROC_NAME_LEN   64
+#define THREAD_NAME_LEN 64
 
-enum process_state { ACTIVE, SLEEPING, WAITING, DEAD };
+enum thread_state { ACTIVE, SLEEPING, WAITING, DEAD };
 
-typedef enum process_state process_state_t;
-
+typedef enum thread_state thread_state_t;
+typedef struct thread thread_t;
 typedef struct process proc_t;
+typedef struct lst thread_lst;
+typedef struct thread_arr thread_arr_t;
+
+struct thread_arr {
+    thread_t **data;
+    size_t len;
+    size_t capacity;
+};
+
 struct process {
     struct lst _;
 
     u64 id;
-    char name[PROC_NAME_MAX_LEN];
-    process_state_t state;
-    int_frame_t context;
+    char name[PROC_NAME_LEN];
+
+    thread_arr_t threads;
 
     vmm_info_t *vmm;
-    memory_area_t *stack;
     memory_area_t *heap_start;
 };
 
+struct thread {
+    struct lst lst;
+
+    u64 tid;
+    thread_state_t state;
+    char name[THREAD_NAME_LEN];
+
+    proc_t *proc;
+
+    int_frame_t context;
+    memory_area_t *stack;
+};
+
 proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc);
+void destroy_process(proc_t *proc);
+
+thread_t *add_thread(proc_t *proc, char *name, u64 entry);
+void destroy_thread(thread_t *t);
 
 #endif  // PROCESS_H

@@ -16,11 +16,11 @@
 #include <stdbool.h>
 #include <string.h>
 
-typedef struct lst proc_lst;
+typedef struct lst thread_lst;
 
+thread_lst schedule_lst;
+spinlock_t schedule_lock = {.name = "Schedule  list lock"};
 bool scheduler_ready = false;
-proc_lst schedule_lst;
-spinlock_t proc_list_lock = {.name = "Proc list lock"};
 
 void init_scheduler() {
     lst_init(&schedule_lst);
@@ -28,34 +28,36 @@ void init_scheduler() {
 }
 
 void run_proc(proc_t *p) {
-    lst_push_end(&schedule_lst, p);
+    for (size_t i = 0; i < p->threads.len; i ++) {
+        lst_push_end(&schedule_lst, p->threads.data[i]);
+    }
 }
 
 void schedule(int_frame_t *int_frame) {
     if (!scheduler_ready) return;
     if (lst_empty(&schedule_lst)) return;
 
-    acquire(&proc_list_lock);
-    proc_t *new_proc = lst_pop_end(&schedule_lst);
-    release(&proc_list_lock);
+    acquire(&schedule_lock);
+    thread_t *new_thread = lst_pop(&schedule_lst);
+    release(&schedule_lock);
 
-    if (!new_proc) return;
+    if (!new_thread) return;
 
     u64 rsp = int_frame->registers.rsp;
 
-    proc_t *old_proc = get_cpu()->proc;
-    if (old_proc && old_proc->state != DEAD) {
-        memcpy(&old_proc->context, int_frame, sizeof(int_frame_t));
-        lst_push_end(&schedule_lst, old_proc);
-    } else if (old_proc) {
-        // destroy_process(old_proc);
+    thread_t *old_thread = get_cpu()->thread;
+    if (old_thread && old_thread->state != DEAD) {
+        memcpy(&old_thread->context, int_frame, sizeof(int_frame_t));
+        lst_push_end(&schedule_lst, old_thread);
+    } else if (old_thread) {
+        destroy_thread(old_thread);
     } else {
         update_rsp0(int_frame->iret_rsp);
     }
 
-    get_cpu()->proc = new_proc;
-    memcpy(int_frame, &new_proc->context, sizeof(int_frame_t));
-    change_pagetable(new_proc->vmm->root_pagetable - PHYSICAL_OFFSET);
+    get_cpu()->thread = new_thread;
+    memcpy(int_frame, &new_thread->context, sizeof(int_frame_t));
+    change_current_vmm(new_thread->proc->vmm);
 
     int_frame->registers.rsp = rsp;
     return;
