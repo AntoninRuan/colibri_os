@@ -52,6 +52,7 @@
 - [x] Virtual Memory Manager
 - [x] Kernel Heap
 - [x] TSS implementation for hardware int when in user mode
+- [ ] Memory barrier when allocating stack area for process
 
 ## SMP
 
