@@ -1,3 +1,6 @@
+#include <stdarg.h>
+#include <stdio.h>
+
 typedef enum { OK, ERROR } status;
 
 char *status_str[2] = {

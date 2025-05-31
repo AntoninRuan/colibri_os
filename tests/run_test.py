@@ -8,7 +8,7 @@ def main():
     total_test = 0
     failed = 0
     for test in sys.argv[1:]:
-        print(f"Testing {test}")
+        print(f"Running {test}")
         p = subprocess.run([f"./{test}"], capture_output=True)
         out = p.stdout.decode("utf-8")
         print(out, end="")
