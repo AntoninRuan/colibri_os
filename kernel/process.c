@@ -9,6 +9,7 @@
 #include <kernel/memory/vmm.h>
 #include <kernel/process.h>
 #include <kernel/sync.h>
+#include <kernel/timer.h>
 #include <kernel/x86-64.h>
 #include <string.h>
 
@@ -160,6 +161,8 @@ void run_proc(proc_t *p) {
 }
 
 void schedule(int_frame_t *context) {
+    arm_timer(1e9, false, true);
+
     if (schedule_lst.capacity == 0) return;
 
     size_t i = schedule_index;

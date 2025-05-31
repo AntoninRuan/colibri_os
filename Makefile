@@ -32,6 +32,9 @@ format:
 todo:
 	grep -HnF -e TODO -e FIXME $(SOURCE_FILES)
 
+test:
+	@cd tests && make
+
 CPUS ?= 1
 
 QEMU_FLAGS := -cpu max -machine q35 -m 256M -no-reboot -no-shutdown -smp $(CPUS) -cdrom $(OS_NAME).iso -serial stdio

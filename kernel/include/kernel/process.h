@@ -44,14 +44,10 @@ struct thread {
     char name[THREAD_NAME_LEN];
 
     thread_state_t state;
-    u64 wake_time;
-
     proc_t *proc;
 
     int_frame_t context;
     memory_area_t *stack;
-
-    thread_t *next;
 };
 
 proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc);

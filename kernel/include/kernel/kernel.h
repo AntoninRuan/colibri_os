@@ -15,6 +15,7 @@ struct kernel_status {
 
     u32 bsp_id;
     bool nx_flag_enabled;
+    u64 uptime;                 // in msec
 };
 
 typedef struct kernel_status kernel_status_t;
