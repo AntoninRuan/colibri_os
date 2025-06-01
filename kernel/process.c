@@ -8,6 +8,7 @@
 #include <kernel/memory/vm.h>
 #include <kernel/memory/vmm.h>
 #include <kernel/process.h>
+#include <kernel/scheduler/cfs.h>
 #include <kernel/sync.h>
 #include <kernel/timer.h>
 #include <kernel/x86-64.h>
@@ -55,6 +56,16 @@ void remove(thread_array *array, size_t index) {
     memmove(&array->data[index], &array->data[index + 1],
             sizeof(thread_t *) * (array->len - index - 1));
     array->len--;
+    return;
+}
+
+void remove_el(thread_array *array, thread_t *t) {
+    for (size_t i = 0; i < array->len; i ++) {
+        if (array->data[i] == t) {
+            remove(array, i);
+            return;
+        }
+    }
     return;
 }
 
@@ -113,7 +124,10 @@ free_proc:
 }
 
 void destroy_process(proc_t *proc) {
+    proc->lst.prev->next = proc->lst.next;
+    proc->lst.next->prev = proc->lst.prev;
     vmm_destroy(proc->vmm);
+    free(proc->threads.data);
     free(proc);
 }
 
@@ -139,7 +153,6 @@ thread_t *add_thread(proc_t *proc, char *name, u64 entry) {
         return NULL;
     }
 
-    // memset((void *)stack->start, 0, stack->size);
     t->stack = stack;
     t->context.iret_rsp = stack->start + stack->size;
     t->context.iret_rip = entry;
@@ -151,49 +164,22 @@ thread_t *add_thread(proc_t *proc, char *name, u64 entry) {
     return t;
 }
 
-void destroy_thread(thread_t *t) {}
+void destroy_thread(thread_t *t) {
+    proc_t *proc = t->proc;
 
-void run_proc(proc_t *p) {
-    if (schedule_lst.capacity == 0) init_thread_array(&schedule_lst);
-    for (size_t i = 0; i < p->threads.len; i ++) {
-        add(&schedule_lst, p->threads.data[i]);
+    remove_el(&proc->threads, t);
+    vmm_free(proc->vmm, t->stack);
+    free(t);
+
+    if (proc->threads.len == 0) {
+        destroy_process(proc);
     }
 }
 
-void schedule(int_frame_t *context) {
-    arm_timer(1e9, false, true);
-
-    if (schedule_lst.capacity == 0) return;
-
-    size_t i = schedule_index;
-    thread_t *new_t;
-    do {
-        new_t = schedule_lst.data[i];
-        i ++;
-        if (i == schedule_lst.len) i = 0;
-    } while (new_t->state != WAITING && i != schedule_index);
-
-    schedule_index = i;
-    if (new_t == get_cpu()->thread) return;
-    if (new_t->state != WAITING) return; // No thread to run
-
-    u64 rsp = context->registers.rsp;
-
-    thread_t *old_thread = get_cpu()->thread;
-    if (old_thread && old_thread->state != DEAD) {
-        memcpy(&old_thread->context, context, sizeof(int_frame_t));
-        old_thread->state = WAITING;
-    } else if (old_thread) {
-        destroy_thread(old_thread);
-    } else {
-        update_rsp0(context->iret_rsp);
+void run_proc(proc_t *p) {
+    for (size_t i = 0; i < p->threads.len; i ++) {
+        sched_entity_t *se = (sched_entity_t *) p->threads.data[i];
+        se->exec_start_time = 0;
+        cfs_queue(se);
     }
-
-    new_t->state = ACTIVE;
-    get_cpu()->thread = new_t;
-    memcpy(context, &new_t->context, sizeof(int_frame_t));
-    change_current_vmm(new_t->proc->vmm);
-
-    context->registers.rsp = rsp;
-    return;
 }

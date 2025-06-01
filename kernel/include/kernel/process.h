@@ -8,6 +8,7 @@
 #include <elf.h>
 #include <kernel/list.h>
 #include <kernel/memory/vmm.h>
+#include <kernel/scheduler.h>
 #include <sys/cdefs.h>
 
 #define PROC_NAME_LEN   64
@@ -28,7 +29,7 @@ struct thread_arr {
 };
 
 struct process {
-    struct lst _;
+    struct lst lst;
 
     u64 id;
     char name[PROC_NAME_LEN];
@@ -40,9 +41,12 @@ struct process {
 };
 
 struct thread {
+    sched_entity_t se;
+
     u64 tid;
     char name[THREAD_NAME_LEN];
 
+    u8 prio;
     thread_state_t state;
     proc_t *proc;
 

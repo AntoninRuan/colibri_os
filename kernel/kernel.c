@@ -45,9 +45,6 @@ __attribute__((__noreturn__)) void idle() {
 void main(Elf64_Ehdr *initd) {
     change_current_vmm(&kernel_vmm);
     if (get_cpu()->id == kernel_status.bsp_id && initd) {
-        kernel_status.uptime = 0;
-        arm_timer(1e6, true, false);
-
         proc_t *init_p = create_process("initd", initd, true);
         if (init_p) run_proc(init_p);
     }

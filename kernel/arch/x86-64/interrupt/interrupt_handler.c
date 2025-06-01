@@ -32,7 +32,7 @@ extern void *interrupt_dispatch(struct interrupt_frame *context) {
             break;
 
         case IRQ_HPET_TIMER(0):
-            kernel_status.uptime ++;
+            log(DEBUG, "PING (hpet)");
             break;
 
         case APIC_TIMER_INTERRUPT:

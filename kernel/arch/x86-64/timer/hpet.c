@@ -61,9 +61,14 @@ void configure_timer(u8 timer, timer_config_t conf) {
 
 u64 poll_hpet() { return read_hpet_register(MAIN_COUNTER_VALUE_REG); }
 
+u64 uptime() {
+    u64 femto = poll_hpet() * hpet_period;
+    return (femto / 1e6);
+}
+
 void sleep_polled_hpet(u64 femto) {
     u64 cycle = femto / hpet_period;
-    ;
+
     u64 main_counter = poll_hpet();
     u64 target = main_counter + cycle;
 

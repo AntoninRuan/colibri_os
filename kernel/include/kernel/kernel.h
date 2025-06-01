@@ -15,7 +15,6 @@ struct kernel_status {
 
     u32 bsp_id;
     bool nx_flag_enabled;
-    u64 uptime;                 // in msec
 };
 
 typedef struct kernel_status kernel_status_t;
@@ -36,6 +35,7 @@ extern kernel_status_t kernel_status;
 extern cpu_status_t cpu_status[];
 
 #ifdef __arch_x86_64
+#include <kernel/arch/x86-64/hpet.h>
 #include <kernel/arch/x86-64/apic.h>
 static inline cpu_status_t *get_cpu() {
     u32 apic_id = get_apic_id();
@@ -47,6 +47,8 @@ static inline cpu_status_t *get_cpu() {
 static inline void disable_interrupt() { asm("cli"); }
 static inline void enable_interrupt() { asm("sti"); }
 #endif
+
+u64 uptime();
 
 void push_off();
 void pop_off();

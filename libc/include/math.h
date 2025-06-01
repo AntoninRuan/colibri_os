@@ -12,6 +12,8 @@ extern "C" {
 int ceildiv(int x, int y);
 u8 ceillog2(u64 value);
 void itoa(char *buf, unsigned int base, int d, bool caps);
+u64 max(u64, u64);
+u64 min(u64 a, u64 b);
 
 #ifdef __cplusplus
 }
