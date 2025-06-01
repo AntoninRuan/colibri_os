@@ -59,6 +59,11 @@ void setup_tss() {
     asm volatile("ltr %0" ::"r"((u16)0x28));
 }
 
+u64 get_rsp0() {
+    if(!tss) return 0;
+    return tss->rsp0;
+}
+
 void update_rsp0(u64 rsp0) {
     if (!tss) return;
     tss->rsp0 = rsp0;

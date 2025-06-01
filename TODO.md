@@ -23,13 +23,15 @@
 - [x] Parsing ELF files
 - [ ] VFS
 - [ ] Driver for fat32
+- [ ] Driver for ext2
 - [ ] Driver for ext4
 
 ## Scheduling
 
 - [x] Implement a scheduler
-- [ ] Implement priority based scheduler
-- [ ] Threads
+- [x] Implement priority based scheduler
+- [x] Threads
+- [x] Idle thread
 
 ## Userspace
 
