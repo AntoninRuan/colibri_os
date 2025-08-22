@@ -4,6 +4,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#ifndef LOG_LEVEL
+#define LOG_LEVEL 1 // Info
+#endif
+
 char *level_prefix[4] = {
     "DEBUG",
     "INFO",
@@ -18,6 +22,7 @@ void enable_tty_log() { log_tty = true; }
 void disable_tty_log() { log_tty = false; }
 
 void log(log_level_t level, const char *msg) {
+    if (level < (log_level_t) LOG_LEVEL) return;
     if (!(log_qemu || log_tty)) return;
     char prefix[32] = {0};
     sprintf(prefix, "[CPU #%d] [%s]: ", get_cpu()->id, level_prefix[level]);
@@ -33,6 +38,7 @@ void log(log_level_t level, const char *msg) {
 }
 
 void logf(log_level_t level, const char *msg, ...) {
+    if (level < (log_level_t) LOG_LEVEL) return;
     if (!(log_qemu || log_tty)) return;
     va_list ap;
     char final[128] = {0};

@@ -62,14 +62,14 @@ u64 page_index(u64 addr) {
 
 u64 addr(u64 index) { return base + index * PAGE_SIZE; }
 
-bool bit_isset(u64 index) {
+static inline bool bit_isset(u64 index) {
     char c = alloc[index / 8];
     return (c & (1L << (index % 8)));
 }
 
-void bit_set(u64 index) { alloc[index / 8] |= 1L << (index % 8); }
+static inline void bit_set(u64 index) { alloc[index / 8] |= 1L << (index % 8); }
 
-void bit_clear(u64 index) { alloc[index / 8] &= ~(u8)(1 << (index % 8)); }
+static inline void bit_clear(u64 index) { alloc[index / 8] &= ~(u8)(1 << (index % 8)); }
 
 void init_phys_allocator(memory_area_t *ram_available) {
     logf(INFO, "Init physical allocator at base=0x%X with size 0x%X",
