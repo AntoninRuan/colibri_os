@@ -60,7 +60,7 @@ void setup_tss() {
 }
 
 u64 get_rsp0() {
-    if(!tss) return 0;
+    if (!tss) return 0;
     return tss->rsp0;
 }
 

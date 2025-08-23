@@ -124,8 +124,7 @@ void *realloc(void *ptr, size_t sz) {
 
     node->next = right;
     node->size = sz;
-    if (right->next)
-        right->next->prev = right;
+    if (right->next) right->next->prev = right;
 
     return ptr;
 }

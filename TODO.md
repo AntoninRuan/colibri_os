@@ -23,7 +23,7 @@
 - [x] Parsing ELF files
 - [ ] VFS
 - [ ] Driver for fat32
-- [ ] Driver for ext2
+- [ ] Driver for ext2/3
 - [ ] Driver for ext4
 
 ## Scheduling

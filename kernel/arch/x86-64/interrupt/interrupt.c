@@ -41,8 +41,8 @@ void load_idt() {
     }
 
     struct IDTR idtr = {0};
-    idtr.size = sizeof(struct interrupt_descriptor) * 256 -
-                1;  // Size of idt in bytes minus one
+    idtr.size = sizeof(struct interrupt_descriptor) * 256
+                - 1;  // Size of idt in bytes minus one
     idtr.base = (u64)idt;
 
     asm volatile("lidt %0" ::"m"(idtr));

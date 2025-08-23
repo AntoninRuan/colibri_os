@@ -17,10 +17,11 @@ extern void *interrupt_dispatch(struct interrupt_frame *context) {
         case PAGE_FAULT:
             pg_error_t error = {0};
             error.raw = context->error_code;
-            if (!(error.present || error.rsvd || error.ifetch || error.pk ||
-                  error.ss || error.hlat || error.sgx)) {
+            if (!(error.present || error.rsvd || error.ifetch || error.pk
+                  || error.ss || error.hlat || error.sgx)) {
                 if (on_demand_allocation((void *)context->registers.cr2)) {
-                    panic("Error for on demand allocation, memory not allocated");
+                    panic(
+                        "Error for on demand allocation, memory not allocated");
                 }
             } else {
                 panic("Unresolvable #PF");

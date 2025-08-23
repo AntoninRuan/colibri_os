@@ -40,12 +40,10 @@ void cfs_dequeue(sched_entity_t *se) {
 #define GRANULARITY 1e6
 
 u64 get_timeslice(thread_t *t) {
-    return max(TIME_UNIT / ((1+t->prio) *  (cfs.running + 1)), GRANULARITY);
+    return max(TIME_UNIT / ((1 + t->prio) * (cfs.running + 1)), GRANULARITY);
 }
 
-
 sched_entity_t *cfs_pick_next() {
-    if (cfs.tree.leftmost)
-        return cfs.tree.leftmost->se;
+    if (cfs.tree.leftmost) return cfs.tree.leftmost->se;
     return NULL;
 }

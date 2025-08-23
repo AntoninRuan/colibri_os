@@ -20,7 +20,6 @@
 #include <kernel/tty.h>
 #include <kernel/x86-64.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
 extern u8 ap_trampoline;

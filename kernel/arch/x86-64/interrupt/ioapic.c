@@ -55,6 +55,7 @@ int set_irq(u8 irq, u8 idt_entry, u8 dest, u8 dest_mode, bool masked) {
 
 int read_madt() {
     struct madt *madt = (struct madt *)find_table(ACPI_TABLE_APIC);
+    // TODO checksum check would be good here
     if (madt == NULL) return 1;
 
     struct ic_headers *header;

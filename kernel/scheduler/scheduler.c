@@ -11,10 +11,7 @@
 #include <string.h>
 #include <sys/cdefs.h>
 
-thread_t idle_t = {
-    .name = "Idle thread",
-    .context.iret_rip = (u64) &idle
-};
+thread_t idle_t = {.name = "Idle thread", .context.iret_rip = (u64)&idle};
 
 void schedule(int_frame_t *context) {
     u64 rsp = context->registers.rsp;

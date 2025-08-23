@@ -71,8 +71,8 @@ void terminal_render_char(size_t x_org, size_t y_org, char c) {
             for (u8 i = 0; i < 8; i++) {
                 if ((x + i) >= font->width) break;
 
-                u32 *index = (u32 *)(display.addr + y_org + x_org +
-                                     (x + i) * (display.bpp / 8));
+                u32 *index = (u32 *)(display.addr + y_org + x_org
+                                     + (x + i) * (display.bpp / 8));
 
                 if (font_char[bitmap_offset] & (0x80 >> i))
                     *index = fg;

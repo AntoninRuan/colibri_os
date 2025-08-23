@@ -56,6 +56,8 @@ struct xsdp {
     u8 reserved[3];
 } __attribute__((packed));
 
+typedef struct acpi_sdt_header acpi_sdt_header_t;
+
 struct acpi_sdt_header {
     char signature[4];  // Not null terminated
     u32 length;
@@ -67,8 +69,6 @@ struct acpi_sdt_header {
     u32 creator_id;
     u32 creator_revision;
 };
-
-typedef struct acpi_sdt_header acpi_sdt_header_t;
 
 struct rsdt {
     acpi_sdt_header_t header;

@@ -21,16 +21,17 @@ void load_multiboot_info(u32 magic, u64 addr,
     u32 module_index = 0;
     for (header = (struct multiboot_tag_header *)(addr + 8);
          header->type != MULTIBOOT_HEADER_TAG_END;
-         header = (struct multiboot_tag_header *)((u8 *)header +
-                                                  ((header->size + 7) & ~7))) {
+         header =
+             (struct multiboot_tag_header *)((u8 *)header
+                                             + ((header->size + 7) & ~7))) {
         switch (header->type) {
             case MULTIBOOT_TAG_TYPE_BOOT_CMD_LINE:
                 break;
             case MULTIBOOT_TAG_TYPE_BOOTLOADER_NAME:
                 break;
             case MULTIBOOT_TAG_TYPE_MODULES:
-                if (boot_info->module &&
-                    module_index < boot_info->module_size) {
+                if (boot_info->module
+                    && module_index < boot_info->module_size) {
                     boot_info->module[module_index] =
                         (struct multiboot_module *)header;
                     module_index++;

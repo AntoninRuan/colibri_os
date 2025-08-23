@@ -35,8 +35,8 @@ extern kernel_status_t kernel_status;
 extern cpu_status_t cpu_status[];
 
 #ifdef __arch_x86_64
-#include <kernel/arch/x86-64/hpet.h>
 #include <kernel/arch/x86-64/apic.h>
+#include <kernel/arch/x86-64/hpet.h>
 static inline cpu_status_t *get_cpu() {
     u32 apic_id = get_apic_id();
     if (cpu_status[apic_id].id != apic_id) {
