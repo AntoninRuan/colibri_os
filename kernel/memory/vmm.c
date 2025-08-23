@@ -31,13 +31,15 @@ void vmm_init(vmm_info_t *vmm, void *pagetable, uintptr_t start, uintptr_t end,
         vmm->lock = &kernel_vmm_lock;
 }
 
+// return memory area containing va in vmm, return NULL if no area contains va
 memory_area_t *get_memory_area(vmm_info_t *vmm, void *va) {
+    if (vmm == NULL) return NULL;
     if ((uintptr_t)va > vmm->current_addr) return NULL;
 
     memory_area_t *cur = vmm->first_area;
     for (; cur; cur = cur->next) {
-        if (cur->start <= (uintptr_t)va &&
-            (uintptr_t)va < cur->start + cur->size) {
+        if (cur->start <= (uintptr_t)va
+            && (uintptr_t)va < cur->start + cur->size) {
             return cur;
         }
     }
@@ -110,8 +112,8 @@ memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, u64 sz, u8 flags) {
 
     // Current container is full creating a new one, or there is no existing
     // container
-    if (vmm->current_index == ITEM_PER_CONTAINER ||
-        vmm->root_container == NULL) {
+    if (vmm->current_index == ITEM_PER_CONTAINER
+        || vmm->root_container == NULL) {
         void *phy_addr = kalloc();
         vmm_container_t *new_container =
             (vmm_container_t *)(phy_addr + PHYSICAL_OFFSET);
@@ -153,12 +155,15 @@ memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *vmm, u64 sz, u8 flags) {
     return new;
 }
 
-int vmm_free(vmm_info_t *vmm, memory_area_t *area) {
+int vmm_free_area(vmm_info_t *vmm, memory_area_t *area) {
+    // Check area is not null
+    if (!area) return -1;
+
     // Check if area is managed by vmm
     vmm_container_t *cur = vmm->root_container;
     while (cur) {
-        if (cur->root_area <= area &&
-            area <= &cur->root_area[ITEM_PER_CONTAINER - 1]) {
+        if (cur->root_area <= area
+            && area <= &cur->root_area[ITEM_PER_CONTAINER - 1]) {
             break;
         }
         cur = cur->next;
@@ -179,20 +184,12 @@ int vmm_free(vmm_info_t *vmm, memory_area_t *area) {
     else
         vmm->current_area = area->prev;
 
-    unmappages(vmm->root_pagetable, (void *)area->start, area->size, true);
+    unmappages(vmm->root_pagetable, (void *)area->start, area->size,
+               !area->is_mmio);
 
     // TODO add mechanism to free / compact containers
 
     return 0;
-}
-
-
-int update_area_access(vmm_info_t *vmm, memory_area_t *area, u8 flags) {
-    area->flags = flags;
-    if (vmm->user_vmm) area->flags |= MEMORY_FLAG_USER;
-
-    return updatepages(vmm->root_pagetable, (void *)area->start,
-                       area->size, area->flags);
 }
 
 void change_current_vmm(vmm_info_t *vmm) {
@@ -209,13 +206,32 @@ vmm_info_t *get_current_vmm() {
         return &kernel_vmm;
 }
 
+vmm_info_t *get_relevant_vmm(void *va) {
+    if ((u64)va >= 0xFFFF800000000000)
+        return &kernel_vmm;
+    else
+        return get_current_vmm();
+}
+
+int vmm_free(void *va) {
+    vmm_info_t *vmm = get_relevant_vmm(va);
+
+    memory_area_t *area = get_memory_area(vmm, va);
+    if (!area) return -1;
+
+    return vmm_free_area(vmm, area);
+}
+
+int update_area_access(vmm_info_t *vmm, memory_area_t *area, u8 flags) {
+    area->flags = flags;
+    if (vmm->user_vmm) area->flags |= MEMORY_FLAG_USER;
+
+    return updatepages(vmm->root_pagetable, (void *)area->start, area->size,
+                       area->flags);
+}
+
 int on_demand_allocation(void *va) {
-    vmm_info_t *current_vmm;
-    if ((u64)va >= 0xFFFF800000000000) {
-        current_vmm = &kernel_vmm;
-    } else {
-        current_vmm = get_current_vmm();
-    }
+    vmm_info_t *current_vmm = get_relevant_vmm(va);
 
     memory_area_t *area = get_memory_area(current_vmm, va);
     if (area == NULL) {
@@ -224,7 +240,10 @@ int on_demand_allocation(void *va) {
     }
 
     void *page = kalloc();
-    mappages(current_vmm->root_pagetable, va, PAGE_SIZE, page, area->flags);
+    if (mappages(current_vmm->root_pagetable, (void *)PAGE_START(va, PAGE_SIZE),
+                 PAGE_SIZE, page, area->flags)) {
+        return -1;
+    }
     return 0;
 }
 
@@ -275,4 +294,36 @@ void vmm_destroy(vmm_info_t *vmm) {
     free(vmm->lock);
     kfree(vmm->root_pagetable - PHYSICAL_OFFSET);
     free(vmm);
+}
+
+void *map_mmio(vmm_info_t *vmm, u64 physical, size_t size, bool writable) {
+    if (vmm == NULL) vmm = &kernel_vmm;
+
+    u8 flag = 0;
+    if (writable) flag |= MEMORY_FLAG_WRITE;
+    if (vmm->user_vmm) flag |= MEMORY_FLAG_USER;
+    memory_area_t *area = vmm_alloc(vmm, size, flag);
+    if (!area) return NULL;
+    area->is_mmio = true;
+    int result = mappages(vmm->root_pagetable, (void *)area->start, area->size,
+                          (void *)physical, area->flags);
+    if (result) {
+        logf(ERROR, "Error while mapping IO");
+        return NULL;
+    };
+
+    return (void *)area->start;
+}
+
+void unmap_mmio(void *va) {
+    vmm_info_t *vmm = get_relevant_vmm(va);
+    memory_area_t *area = get_memory_area(vmm, va);
+
+    // va is not allocated
+    if (!area) return;
+
+    // area is not mmio, illegal call
+    if (!area->is_mmio) return;
+
+    vmm_free_area(vmm, area);
 }

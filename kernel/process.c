@@ -60,7 +60,7 @@ void remove(thread_array *array, size_t index) {
 }
 
 void remove_el(thread_array *array, thread_t *t) {
-    for (size_t i = 0; i < array->len; i ++) {
+    for (size_t i = 0; i < array->len; i++) {
         if (array->data[i] == t) {
             remove(array, i);
             return;
@@ -84,6 +84,8 @@ proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc) {
     if (!vmm) goto free_proc;
 
     map_higher_half(vmm->root_pagetable);
+
+    push_off();
     change_current_vmm(vmm);
 
     proc->vmm = vmm;
@@ -104,6 +106,7 @@ proc_t *create_process(char *name, Elf64_Ehdr *elf, bool user_proc) {
     }
 
     if (current_vmm) change_current_vmm(current_vmm);
+    pop_off();
 
     init_thread_array(&proc->threads);
     thread_t *t = add_thread(proc, "", elf->e_entry);
@@ -168,7 +171,7 @@ void destroy_thread(thread_t *t) {
     proc_t *proc = t->proc;
 
     remove_el(&proc->threads, t);
-    vmm_free(proc->vmm, t->stack);
+    vmm_free_area(proc->vmm, t->stack);
     free(t);
 
     if (proc->threads.len == 0) {
@@ -177,8 +180,8 @@ void destroy_thread(thread_t *t) {
 }
 
 void run_proc(proc_t *p) {
-    for (size_t i = 0; i < p->threads.len; i ++) {
-        sched_entity_t *se = (sched_entity_t *) p->threads.data[i];
+    for (size_t i = 0; i < p->threads.len; i++) {
+        sched_entity_t *se = (sched_entity_t *)p->threads.data[i];
         se->exec_start_time = 0;
         cfs_queue(se);
     }

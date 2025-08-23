@@ -69,7 +69,9 @@ static inline bool bit_isset(u64 index) {
 
 static inline void bit_set(u64 index) { alloc[index / 8] |= 1L << (index % 8); }
 
-static inline void bit_clear(u64 index) { alloc[index / 8] &= ~(u8)(1 << (index % 8)); }
+static inline void bit_clear(u64 index) {
+    alloc[index / 8] &= ~(u8)(1 << (index % 8));
+}
 
 void init_phys_allocator(memory_area_t *ram_available) {
     logf(INFO, "Init physical allocator at base=0x%X with size 0x%X",
@@ -103,7 +105,10 @@ void init_phys_allocator(memory_area_t *ram_available) {
 // Return the physical address of the page start
 void *kalloc() {
     acquire(&phys_alloc_lock);
-    if (lst_empty(&free_lst)) return 0;
+    if (lst_empty(&free_lst)) {
+        release(&phys_alloc_lock);
+        return 0;
+    }
     void *page = lst_pop(&free_lst) - PHYSICAL_OFFSET;
     bit_set(page_index((u64)page));
     release(&phys_alloc_lock);

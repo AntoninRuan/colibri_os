@@ -13,7 +13,8 @@ void lst_push(struct lst *lst, void *p) {
     n->next = lst->next;
     n->prev = lst;
 
-    lst->next->prev = n;
+    if (lst->next) lst->next->prev = n;
+
     lst->next = n;
 }
 

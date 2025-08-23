@@ -211,23 +211,6 @@ int unmappages(void *pagetable, void *va, u64 sz, bool free) {
     return 0;
 }
 
-void *map_mmio(vmm_info_t *vmm, u64 physical, size_t size, bool writable) {
-    if (vmm == NULL) vmm = &kernel_vmm;
-
-    u8 flag = 0;
-    if (writable) flag |= MEMORY_FLAG_WRITE;
-    if (vmm->user_vmm) flag |= MEMORY_FLAG_USER;
-    memory_area_t *area = vmm_alloc(vmm, size, flag);
-    int result = mappages(vmm->root_pagetable, (void *)area->start, area->size,
-                          (void *)physical, area->flags);
-    if (result) {
-        logf(ERROR, "Error while mapping IO");
-        return NULL;
-    };
-
-    return (void *)area->start;
-}
-
 void map_higher_half(void *pt_addr) {
     pml4e_t *pagetable = (pml4e_t *)pt_addr;
     for (u64 i = 256; i < 512; i++) {

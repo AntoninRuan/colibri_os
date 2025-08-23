@@ -12,6 +12,7 @@ struct memory_area {
     u64 start;
     u64 size;
     u8 flags;
+    u8 is_mmio;
     memory_area_t *next;
     memory_area_t *prev;
 };
@@ -52,16 +53,19 @@ typedef struct vmm_info vmm_info_t;
 
 extern vmm_info_t kernel_vmm;
 
-void vmm_init(vmm_info_t *vmm, void *pagetable, uintptr_t start, uintptr_t end,
+void vmm_init(vmm_info_t *, void *pagetable, uintptr_t start, uintptr_t end,
               bool user, spinlock_t *spinlock);
-memory_area_t *get_memory_area(vmm_info_t *vmm, void *va);
+memory_area_t *get_memory_area(vmm_info_t *, void *va);
 memory_area_t *vmm_alloc_at(uintptr_t base, vmm_info_t *, u64 sz, u8 flags);
-memory_area_t *vmm_alloc(vmm_info_t *vmm, u64 sz, u8 flags);
-int vmm_free(vmm_info_t *vmm, memory_area_t *area);
+memory_area_t *vmm_alloc(vmm_info_t *, u64 sz, u8 flags);
+int vmm_free_area(vmm_info_t *, memory_area_t *area);
+int vmm_free(void *va);
 int update_area_access(vmm_info_t *, memory_area_t *, u8 flags);
 void change_current_vmm(vmm_info_t *);
 int on_demand_allocation(void *va);
 vmm_info_t *vmm_create(uintptr_t start, uintptr_t end, bool user);
-void vmm_destroy(vmm_info_t *vmm);
+void vmm_destroy(vmm_info_t *);
+void *map_mmio(vmm_info_t *, u64 physical, size_t size, bool writable);
+void unmap_mmio(void *va);
 
 #endif  // VMM_H
