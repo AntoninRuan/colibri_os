@@ -13,10 +13,9 @@ LLVM_TARGET_FLAG := --target=$(HOST) -march=$(HOSTARCH)
 AR := llvm-ar
 CC := clang $(LLVM_TARGET_FLAG) -ggdb -std=gnu23
 
-.PHONY: all qemu qemu-gdb todo clean format
+.PHONY: all qemu qemu-gdb todo clean format test
 .SUFFIXES: .libk.o .c .S .o
 
-C_FILES != find libc/ kernel/ -name "*.[c|h]"
 ASM_FILES != find libc/ kernel/ -name "*.S"
 SOURCE_FILES := $(C_FILES) $(ASM_FILES)
 
@@ -27,17 +26,22 @@ clean:
 	rm -R $(SYSROOT)
 
 format:
-	clang-format -i $(C_FILES)
+	find . -name "*.[c|h]" -execdir clang-format -i {} +
 
 todo:
-	grep -HnF -e TODO -e FIXME $(SOURCE_FILES)
+	@grep -HnF -e TODO -e FIXME $$(find libc/ kernel/ -name "*.[c|h|S]")
 
 test:
 	@cd tests && make
 
 CPUS ?= 1
+DISK_FILE ?= disk.img
 
 QEMU_FLAGS := -cpu max -machine q35 -m 256M -no-reboot -no-shutdown -smp $(CPUS) -cdrom $(OS_NAME).iso -serial stdio
+QEMU_FLAGS += -drive id=disk,file=$(DISK_FILE),format=raw,if=none
+QEMU_FLAGS += -device ahci,id=ahci
+QEMU_FLAGS += -device ide-hd,drive=disk,bus=ahci.0
+QEMU_FLAGS += --trace "ahci_port_*"
 QEMU_FLAG_DEBUG := -s -S -monitor telnet:127.0.0.1:7777,server,nowait
 
 .gdbinit: Makefile

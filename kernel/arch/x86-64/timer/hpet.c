@@ -128,7 +128,7 @@ int setup_hpet() {
     hpet_acpi_t *hpet_table = (hpet_acpi_t *)header;
 
     hpet_base_addr =
-        map_mmio(&kernel_vmm, hpet_table->base_addr.addr, 0x400, true);
+        map_mmio(&kernel_vmm, hpet_table->base_addr.addr, 0x400, true, false);
     if (hpet_base_addr == NULL) {
         logf(ERROR, "MMIO mapping for hpet failed");
         return 1;

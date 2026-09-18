@@ -296,11 +296,13 @@ void vmm_destroy(vmm_info_t *vmm) {
     free(vmm);
 }
 
-void *map_mmio(vmm_info_t *vmm, u64 physical, size_t size, bool writable) {
+void *map_mmio(vmm_info_t *vmm, u64 physical, size_t size, bool writable,
+               bool cacheable) {
     if (vmm == NULL) vmm = &kernel_vmm;
 
     u8 flag = 0;
     if (writable) flag |= MEMORY_FLAG_WRITE;
+    if (!cacheable) flag |= MEMORY_FLAG_UNCACHEABLE;
     if (vmm->user_vmm) flag |= MEMORY_FLAG_USER;
     memory_area_t *area = vmm_alloc(vmm, size, flag);
     if (!area) return NULL;

@@ -73,7 +73,7 @@ int read_madt() {
                 struct ic_io_apic *ioapic = (struct ic_io_apic *)header;
                 if (io_apic_reg_sel == 0) {
                     io_apic_reg_sel =
-                        map_mmio(NULL, ioapic->address, 0x20, true);
+                        map_mmio(NULL, ioapic->address, 0x20, true, false);
                     if (io_apic_reg_sel == NULL) {
                         logf(ERROR,
                              "MMIO Mapping for io_apic registers failed");

@@ -92,6 +92,10 @@ u64 vmflag_to_x86flag(u64 flag) {
         result |= 1L << 63;
     }
     result |= (flag & (MEMORY_FLAG_WRITE | MEMORY_FLAG_USER)) << 1;
+    if (flag & MEMORY_FLAG_UNCACHEABLE)
+        // Set PWT and PCT (bit 3 and 4)
+        result |= 0x18;
+
     return result;
 }
 

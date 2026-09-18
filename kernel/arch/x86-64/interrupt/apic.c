@@ -133,7 +133,7 @@ int enable_lapic(u32 apic_id) {
     if (!support_xapic2[apic_id]) {
         // 0x400 is the size of all lapic registers
         lapic_base_address[apic_id] =
-            map_mmio(NULL, apic_base & 0xFFFFF000, 0x400, true);
+            map_mmio(NULL, apic_base & 0xFFFFF000, 0x400, true, false);
         if (lapic_base_address[apic_id] == NULL) {
             logf(ERROR, "MMIO mapping for lapic registers failed for cpu %d",
                  apic_id);

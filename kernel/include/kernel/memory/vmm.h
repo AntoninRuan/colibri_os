@@ -17,9 +17,10 @@ struct memory_area {
     memory_area_t *prev;
 };
 
-#define MEMORY_FLAG_WRITE 1
-#define MEMORY_FLAG_USER  (1 << 1)
-#define MEMORY_FLAG_EXEC  (1 << 2)
+#define MEMORY_FLAG_WRITE       1
+#define MEMORY_FLAG_USER        (1 << 1)
+#define MEMORY_FLAG_EXEC        (1 << 2)
+#define MEMORY_FLAG_UNCACHEABLE (1 << 3)
 
 #define ITEM_PER_CONTAINER (PAGE_SIZE / sizeof(memory_area_t))
 struct vmm_container {
@@ -65,7 +66,8 @@ void change_current_vmm(vmm_info_t *);
 int on_demand_allocation(void *va);
 vmm_info_t *vmm_create(uintptr_t start, uintptr_t end, bool user);
 void vmm_destroy(vmm_info_t *);
-void *map_mmio(vmm_info_t *, u64 physical, size_t size, bool writable);
+void *map_mmio(vmm_info_t *, u64 physical, size_t size, bool writable,
+               bool cacheable);
 void unmap_mmio(void *va);
 
 #endif  // VMM_H

@@ -73,7 +73,7 @@ static inline int format(bool (*dump)(char *buf, const char *, size_t),
                     base = 8;
                 upper_case = *formats == 'X';
                 formats++;
-                unsigned int i = (unsigned int)va_arg(parameters, int);
+                u32 i = (u32)va_arg(parameters, u32);
                 char buf[13] = {0};  // 12 is the maximum of digits in octal +1
                                      // for NULL terminated
                 itoa(buf, base, i, upper_case);

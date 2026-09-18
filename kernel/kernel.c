@@ -1,7 +1,11 @@
 #include <elf.h>
+#include <kernel/acpi.h>
+#include <kernel/driver/ahci.h>
+#include <kernel/driver/pci.h>
 #include <kernel/kernel.h>
 #include <kernel/log.h>
 #include <kernel/memory/vmm.h>
+#include <kernel/memory/memory_layout.h>
 #include <kernel/process.h>
 #include <kernel/timer.h>
 #include <kernel/x86-64.h>
@@ -44,9 +48,13 @@ __attribute__((__noreturn__)) void idle() {
 
 void main(Elf64_Ehdr *initd) {
     change_current_vmm(&kernel_vmm);
-    if (get_cpu()->id == kernel_status.bsp_id && initd) {
-        proc_t *init_p = create_process("initd", initd, true);
-        if (init_p) run_proc(init_p);
+    if (get_cpu()->id == kernel_status.bsp_id) {
+        init_pci();
+        enable_ahci();
+        if (initd) {
+            proc_t *init_p = create_process("initd", initd, true);
+            if (init_p) run_proc(init_p);
+        }
     }
 
     arm_timer(1e8, false, true);
